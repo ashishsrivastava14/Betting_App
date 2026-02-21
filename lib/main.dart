@@ -4,6 +4,7 @@ import 'providers/auth_provider.dart';
 import 'providers/event_provider.dart';
 import 'providers/bet_provider.dart';
 import 'providers/wallet_provider.dart';
+import 'providers/notification_provider.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -14,6 +15,7 @@ void main() {
   final eventProvider = EventProvider();
   final betProvider = BetProvider();
   final walletProvider = WalletProvider();
+  final notificationProvider = NotificationProvider();
   final router = createRouter(authProvider);
 
   runApp(
@@ -23,6 +25,7 @@ void main() {
         ChangeNotifierProvider.value(value: eventProvider),
         ChangeNotifierProvider.value(value: betProvider),
         ChangeNotifierProvider.value(value: walletProvider),
+        ChangeNotifierProvider.value(value: notificationProvider),
       ],
       child: MaterialApp.router(
         title: 'BetZone',

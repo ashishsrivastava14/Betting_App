@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/event_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/event_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_utils.dart';
 import '../../widgets/event_card.dart';
@@ -57,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final eventProvider = context.watch<EventProvider>();
+    final notifProvider = context.watch<NotificationProvider>();
 
     return Scaffold(
       body: Stack(
@@ -171,10 +173,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   const Spacer(),
                   // Notification bell right
-                  _walletChip(
-                    Icons.notifications_outlined,
-                    'BetZone',
-                  ),
+                  _notificationBell(notifProvider),
                 ],
               ),
             ),
@@ -429,6 +428,317 @@ class _HomeScreenState extends State<HomeScreen>
         },
       ),
     );
+  }
+
+  Widget _notificationBell(NotificationProvider notifProvider) {
+    return GestureDetector(
+      onTap: () => _showNotificationSheet(notifProvider),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  notifProvider.unreadCount > 0
+                      ? Icons.notifications_active
+                      : Icons.notifications_outlined,
+                  color: notifProvider.unreadCount > 0
+                      ? AppColors.accent
+                      : AppColors.accent,
+                  size: 16,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'BetZone',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (notifProvider.unreadCount > 0)
+            Positioned(
+              top: -5,
+              right: -5,
+              child: Container(
+                width: 17,
+                height: 17,
+                decoration: const BoxDecoration(
+                  color: AppColors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '${notifProvider.unreadCount}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showNotificationSheet(NotificationProvider notifProvider) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.card,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          return DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.6,
+            minChildSize: 0.4,
+            maxChildSize: 0.9,
+            builder: (_, scrollCtrl) {
+              return Column(
+                children: [
+                  // ── Sheet Header ──
+                  Padding(
+                    padding:
+                        const EdgeInsets.fromLTRB(20, 14, 12, 4),
+                    child: Row(
+                      children: [
+                        // Handle bar
+                        const Spacer(),
+                        Container(
+                          width: 36,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: AppColors.cardBorder,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.fromLTRB(20, 4, 8, 10),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.notifications_outlined,
+                            color: AppColors.accent, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Notifications',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.white,
+                          ),
+                        ),
+                        if (notifProvider.unreadCount > 0) ...
+                          [
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.red
+                                    .withValues(alpha: 0.15),
+                                borderRadius:
+                                    BorderRadius.circular(10),
+                                border: Border.all(
+                                    color: AppColors.red
+                                        .withValues(alpha: 0.4)),
+                              ),
+                              child: Text(
+                                '${notifProvider.unreadCount} new',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.red,
+                                ),
+                              ),
+                            ),
+                          ],
+                        const Spacer(),
+                        if (notifProvider.unreadCount > 0)
+                          TextButton(
+                            onPressed: () {
+                              notifProvider.markAllAsRead();
+                              setSheetState(() {});
+                            },
+                            child: Text(
+                              'Mark all read',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: AppColors.accent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Divider(
+                      color: AppColors.cardBorder, height: 1),
+                  // ── Notification List ──
+                  Expanded(
+                    child: notifProvider.notifications.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                    Icons.notifications_off_outlined,
+                                    color: AppColors.textMuted,
+                                    size: 40),
+                                const SizedBox(height: 12),
+                                Text('No notifications',
+                                    style: GoogleFonts.poppins(
+                                        color: AppColors.textMuted)),
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            controller: scrollCtrl,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8),
+                            itemCount:
+                                notifProvider.notifications.length,
+                            separatorBuilder: (_, __) => Divider(
+                                color: AppColors.cardBorder
+                                    .withValues(alpha: 0.5),
+                                height: 1,
+                                indent: 62),
+                            itemBuilder: (_, i) {
+                              final n =
+                                  notifProvider.notifications[i];
+                              return InkWell(
+                                onTap: () {
+                                  notifProvider.markAsRead(n.id);
+                                  setSheetState(() {});
+                                },
+                                child: Container(
+                                  color: n.isRead
+                                      ? Colors.transparent
+                                      : AppColors.accent
+                                          .withValues(alpha: 0.04),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Icon circle
+                                      Container(
+                                        width: 38,
+                                        height: 38,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: n.iconColor
+                                              .withValues(alpha: 0.15),
+                                        ),
+                                        child: Icon(n.icon,
+                                            size: 18,
+                                            color: n.iconColor),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      // Text
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    n.title,
+                                                    style: GoogleFonts
+                                                        .poppins(
+                                                      fontSize: 13,
+                                                      fontWeight: n.isRead
+                                                          ? FontWeight.w500
+                                                          : FontWeight.w700,
+                                                      color:
+                                                          AppColors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                                if (!n.isRead)
+                                                  Container(
+                                                    width: 7,
+                                                    height: 7,
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                      color: AppColors.red,
+                                                      shape:
+                                                          BoxShape.circle,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 3),
+                                            Text(
+                                              n.body,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 11,
+                                                color: AppColors
+                                                    .textSecondary,
+                                              ),
+                                              maxLines: 2,
+                                              overflow:
+                                                  TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _formatNotifTime(
+                                                  n.createdAt),
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 10,
+                                                color: AppColors.textMuted,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  String _formatNotifTime(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
   }
 
   Widget _walletChip(IconData icon, String label) {
