@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/otp_screen.dart';
+import '../screens/auth/register_screen.dart';
 
 // User screens
 import '../screens/user/user_shell.dart';
@@ -41,6 +42,7 @@ GoRouter createRouter(AuthProvider authProvider) {
       final isLoggedIn = authProvider.isLoggedIn;
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/otp' ||
+          state.matchedLocation == '/register' ||
           state.matchedLocation == '/splash';
 
       if (!isLoggedIn && !isAuthRoute) return '/login';
@@ -54,6 +56,7 @@ GoRouter createRouter(AuthProvider authProvider) {
     routes: [
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
       GoRoute(path: '/otp', builder: (_, _) => const OtpScreen()),
 
       // ── User Shell ──
