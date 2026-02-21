@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 
 // Auth screens
+import '../screens/auth/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/otp_screen.dart';
 
@@ -34,22 +35,24 @@ final GlobalKey<NavigatorState> _adminShellKey = GlobalKey<NavigatorState>();
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/login',
+    initialLocation: '/splash',
     refreshListenable: authProvider,
     redirect: (context, state) {
       final isLoggedIn = authProvider.isLoggedIn;
-      final isLoginRoute = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/otp';
+      final isAuthRoute = state.matchedLocation == '/login' ||
+          state.matchedLocation == '/otp' ||
+          state.matchedLocation == '/splash';
 
-      if (!isLoggedIn && !isLoginRoute) return '/login';
+      if (!isLoggedIn && !isAuthRoute) return '/login';
 
-      if (isLoggedIn && isLoginRoute) {
+      if (isLoggedIn && isAuthRoute) {
         return authProvider.isAdmin ? '/admin' : '/home';
       }
 
       return null;
     },
     routes: [
+      GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/otp', builder: (_, _) => const OtpScreen()),
 

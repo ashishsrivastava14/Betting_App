@@ -12,154 +12,379 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  late AnimationController _animController;
+  late Animation<double> _fadeIn;
+  late Animation<Offset> _slideUp;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _fadeIn = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _slideUp = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+    _animController.forward();
+  }
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _animController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                const SizedBox(height: 48),
-
-                // Logo
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.accent.withValues(alpha: 0.12),
-                    border: Border.all(color: AppColors.accent, width: 2),
-                  ),
-                  child: const Icon(Icons.sports_cricket, size: 48, color: AppColors.accent),
-                ),
-                const SizedBox(height: 20),
-
-                Text(
-                  'BetZone',
-                  style: GoogleFonts.poppins(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.accent,
-                    letterSpacing: 2,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Cricket Betting Platform',
-                  style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary, letterSpacing: 1),
-                ),
-
-                const SizedBox(height: 48),
-
-                // Sign In heading
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Sign In',
-                    style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.white),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Enter your mobile number to continue',
-                    style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Phone input
-                TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  maxLength: 10,
-                  style: GoogleFonts.poppins(color: AppColors.white, fontSize: 16),
-                  decoration: InputDecoration(
-                    hintText: 'Mobile Number',
-                    prefixIcon: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.phone, color: AppColors.accent, size: 20),
-                          const SizedBox(width: 8),
-                          Text('+91', style: GoogleFonts.poppins(color: AppColors.white, fontWeight: FontWeight.w600)),
-                          const SizedBox(width: 8),
-                          Container(width: 1, height: 24, color: AppColors.cardBorder),
-                        ],
-                      ),
-                    ),
-                    counterText: '',
-                  ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Enter phone number';
-                    if (v.length != 10) return 'Enter valid 10-digit number';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 28),
-
-                // Send OTP button
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: Consumer<AuthProvider>(
-                    builder: (context, auth, _) {
-                      return ElevatedButton.icon(
-                        onPressed: auth.isLoading
-                            ? null
-                            : () {
-                                if (_formKey.currentState!.validate()) {
-                                  auth.sendOtp(_phoneController.text.trim());
-                                  context.push('/otp');
-                                }
-                              },
-                        icon: auth.isLoading
-                            ? const SizedBox.shrink()
-                            : const Icon(Icons.bolt, size: 20),
-                        label: auth.isLoading
-                            ? const SizedBox(
-                                height: 24, width: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.background),
-                              )
-                            : Text(
-                                'SEND OTP',
-                                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 1),
-                              ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Footer
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('By continuing, you agree to our ',
-                        style: GoogleFonts.poppins(color: AppColors.textMuted, fontSize: 11)),
-                    Text('Terms',
-                        style: GoogleFonts.poppins(color: AppColors.accent, fontSize: 11, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ],
+      body: Stack(
+        children: [
+          // ── Background image ──
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/cricket_bg.jpg',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) =>
+                  Container(color: AppColors.background),
             ),
           ),
-        ),
+          // ── Gradient overlay for readability ──
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.25),
+                    Colors.black.withValues(alpha: 0.55),
+                    AppColors.background.withValues(alpha: 0.92),
+                    AppColors.background,
+                  ],
+                  stops: const [0.0, 0.35, 0.6, 0.75],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Content ──
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Form(
+                key: _formKey,
+                child: FadeTransition(
+                  opacity: _fadeIn,
+                  child: SlideTransition(
+                    position: _slideUp,
+                    child: Column(
+                      children: [
+                        SizedBox(height: screenHeight * 0.08),
+
+                        // ── Logo ──
+                        Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppColors.accent,
+                                AppColors.accentDark,
+                              ],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    AppColors.accent.withValues(alpha: 0.35),
+                                blurRadius: 24,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.sports_cricket,
+                              size: 42, color: AppColors.background),
+                        ),
+                        const SizedBox(height: 18),
+
+                        Text(
+                          'BetZone',
+                          style: GoogleFonts.poppins(
+                            fontSize: 34,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.white,
+                            letterSpacing: 3,
+                            shadows: [
+                              Shadow(
+                                color:
+                                    AppColors.accent.withValues(alpha: 0.5),
+                                blurRadius: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'CRICKET BETTING PLATFORM',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.accent.withValues(alpha: 0.85),
+                            letterSpacing: 3,
+                          ),
+                        ),
+
+                        SizedBox(height: screenHeight * 0.06),
+
+                        // ── Login Card ──
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: AppColors.card.withValues(alpha: 0.85),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppColors.cardBorder
+                                  .withValues(alpha: 0.6),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 30,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome Back',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Enter your mobile number to continue',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Label
+                              Text(
+                                'MOBILE NUMBER',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.accent,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+
+                              // Phone input
+                              TextFormField(
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                maxLength: 10,
+                                style: GoogleFonts.poppins(
+                                  color: AppColors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: '9876543210',
+                                  hintStyle: GoogleFonts.poppins(
+                                    color: AppColors.textMuted
+                                        .withValues(alpha: 0.5),
+                                    fontSize: 16,
+                                  ),
+                                  prefixIcon: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text('🇮🇳',
+                                            style: TextStyle(fontSize: 18)),
+                                        const SizedBox(width: 8),
+                                        Text('+91',
+                                            style: GoogleFonts.poppins(
+                                              color: AppColors.white,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 15,
+                                            )),
+                                        const SizedBox(width: 10),
+                                        Container(
+                                          width: 1,
+                                          height: 24,
+                                          color: AppColors.cardBorder,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  counterText: '',
+                                  filled: true,
+                                  fillColor: AppColors.surface
+                                      .withValues(alpha: 0.7),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: AppColors.cardBorder
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: AppColors.cardBorder
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.accent,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) {
+                                    return 'Enter phone number';
+                                  }
+                                  if (v.length != 10) {
+                                    return 'Enter valid 10-digit number';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Send OTP button
+                              SizedBox(
+                                width: double.infinity,
+                                height: 54,
+                                child: Consumer<AuthProvider>(
+                                  builder: (context, auth, _) {
+                                    return ElevatedButton(
+                                      onPressed: auth.isLoading
+                                          ? null
+                                          : () {
+                                              if (_formKey.currentState!
+                                                  .validate()) {
+                                                auth.sendOtp(_phoneController
+                                                    .text
+                                                    .trim());
+                                                context.push('/otp');
+                                              }
+                                            },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.accent,
+                                        foregroundColor:
+                                            AppColors.background,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(14),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      child: auth.isLoading
+                                          ? const SizedBox(
+                                              height: 24,
+                                              width: 24,
+                                              child:
+                                                  CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                                color:
+                                                    AppColors.background,
+                                              ),
+                                            )
+                                          : Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                const Icon(Icons.bolt,
+                                                    size: 20),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'SEND OTP',
+                                                  style:
+                                                      GoogleFonts.poppins(
+                                                    fontSize: 15,
+                                                    fontWeight:
+                                                        FontWeight.w700,
+                                                    letterSpacing: 1.5,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        // ── Footer ──
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'By continuing, you agree to our ',
+                              style: GoogleFonts.poppins(
+                                color: AppColors.textMuted,
+                                fontSize: 11,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {},
+                              child: Text(
+                                'Terms & Privacy',
+                                style: GoogleFonts.poppins(
+                                  color: AppColors.accent,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor:
+                                      AppColors.accent.withValues(alpha: 0.4),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
