@@ -51,8 +51,89 @@ class _HomeScreenState extends State<HomeScreen>
     final eventProvider = context.watch<EventProvider>();
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
+      body: Stack(
+        children: [
+          // ── Collage Background ──
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/bg-images.png',
+              fit: BoxFit.cover,
+              opacity: const AlwaysStoppedAnimation(0.12),
+            ),
+          ),
+          Positioned(
+            top: -20,
+            right: -30,
+            width: 210,
+            height: 210,
+            child: Transform.rotate(
+              angle: 0.3,
+              child: Image.asset(
+                'assets/images/cricket_bg.jpg',
+                fit: BoxFit.cover,
+                opacity: const AlwaysStoppedAnimation(0.09),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 200,
+            left: -40,
+            width: 190,
+            height: 190,
+            child: Transform.rotate(
+              angle: -0.25,
+              child: Image.asset(
+                'assets/images/bg-images.png',
+                fit: BoxFit.cover,
+                opacity: const AlwaysStoppedAnimation(0.08),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 380,
+            right: -20,
+            width: 200,
+            height: 200,
+            child: Transform.rotate(
+              angle: 0.15,
+              child: Image.asset(
+                'assets/images/cricket_bg.jpg',
+                fit: BoxFit.cover,
+                opacity: const AlwaysStoppedAnimation(0.09),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 80,
+            left: -20,
+            width: 220,
+            height: 220,
+            child: Transform.rotate(
+              angle: -0.2,
+              child: Image.asset(
+                'assets/images/bg-images.png',
+                fit: BoxFit.cover,
+                opacity: const AlwaysStoppedAnimation(0.08),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 60,
+            right: -30,
+            width: 185,
+            height: 185,
+            child: Transform.rotate(
+              angle: 0.35,
+              child: Image.asset(
+                'assets/images/cricket_bg.jpg',
+                fit: BoxFit.cover,
+                opacity: const AlwaysStoppedAnimation(0.07),
+              ),
+            ),
+          ),
+          // ── Main Content ──
+          SafeArea(
+            child: Column(
           children: [
             // ── Top Bar ──
             Padding(
@@ -211,6 +292,8 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ],
         ),
+      ),
+        ],
       ),
     );
   }

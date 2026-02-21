@@ -27,8 +27,16 @@ class DashboardScreen extends StatelessWidget {
     final totalLost = betProvider.getTotalLostForUser(user.id);
 
     return Scaffold(
-      body: SafeArea(
-        child: RefreshIndicator(
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/bg-images.png'),
+            fit: BoxFit.cover,
+            opacity: 0.15,
+          ),
+        ),
+        child: SafeArea(
+          child: RefreshIndicator(
           color: AppColors.accent,
           backgroundColor: AppColors.card,
           onRefresh: () async {
@@ -235,6 +243,7 @@ class DashboardScreen extends StatelessWidget {
               ],
             ),
           ),
+        ),
         ),
       ),
     );
