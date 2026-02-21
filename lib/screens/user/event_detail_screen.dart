@@ -100,6 +100,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       notes: 'Bet on ${event.name} - $_selectedOption',
     ));
     context.read<BetProvider>().placeBet(bet);
+    // Notify AuthProvider so wallet balance updates everywhere in the UI.
+    auth.refreshBalance();
 
     showDialog(
       context: context,
@@ -129,7 +131,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'You bet ${AppUtils.formatCurrency(_betAmount)} on $_selectedOption',
+              'You bet ${AppUtils.formatCurrency(bet.amount)} on ${bet.selectedOption}',
               style: GoogleFonts.poppins(
                   fontSize: 13, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
@@ -149,6 +151,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              setState(() {
+                _selectedOption = null;
+                _betAmount = 0;
+                _amountController.clear();
+              });
               context.go('/home');
             },
             child: Text('OK',
@@ -158,12 +165,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         ],
       ),
     );
-
-    setState(() {
-      _selectedOption = null;
-      _betAmount = 0;
-      _amountController.clear();
-    });
   }
 
   void _showSnackbar(String message) {

@@ -61,4 +61,10 @@ class AuthProvider extends ChangeNotifier {
     _pendingPhone = null;
     notifyListeners();
   }
+
+  /// Call this after any external mutation of the current user's wallet balance
+  /// so that all widgets watching AuthProvider rebuild with the updated value.
+  void refreshBalance() {
+    notifyListeners();
+  }
 }
