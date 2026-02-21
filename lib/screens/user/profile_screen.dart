@@ -19,10 +19,7 @@ class ProfileScreen extends StatelessWidget {
     if (user == null) return const SizedBox();
 
     final totalBets = betProvider.getBetsForUser(user.id).length;
-    final wonBets = betProvider
-        .getBetsForUser(user.id)
-        .where((b) => b.status == 'won')
-        .length;
+    final wonBets = betProvider.getBetsForUser(user.id).where((b) => b.status == 'won').length;
 
     return Scaffold(
       body: SafeArea(
@@ -34,29 +31,20 @@ class ProfileScreen extends StatelessWidget {
 
               // Avatar
               Container(
-                width: 90,
-                height: 90,
+                width: 80,
+                height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [AppColors.accent, AppColors.primary],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.accent.withValues(alpha: 0.3),
-                      blurRadius: 15,
-                    ),
-                  ],
+                  color: AppColors.accent.withValues(alpha: 0.15),
+                  border: Border.all(color: AppColors.accent, width: 2),
                 ),
                 child: Center(
                   child: Text(
-                    user.name.isNotEmpty
-                        ? user.name[0].toUpperCase()
-                        : 'U',
+                    user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
                     style: GoogleFonts.poppins(
-                      fontSize: 36,
+                      fontSize: 32,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppColors.accent,
                     ),
                   ),
                 ),
@@ -64,35 +52,35 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 user.name,
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
+                style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.white),
               ),
               Text(
                 '+91 ${user.phone}',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
+                style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Stats row
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: Row(
+                  children: [
+                    _statItem('Balance', AppUtils.formatCurrency(user.walletBalance), AppColors.accent),
+                    Container(width: 1, height: 30, color: AppColors.cardBorder),
+                    _statItem('Total Bets', '$totalBets', AppColors.blue),
+                    Container(width: 1, height: 30, color: AppColors.cardBorder),
+                    _statItem('Won', '$wonBets', AppColors.green),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 24),
-
-              // Stats row
-              Row(
-                children: [
-                  _statItem('Balance',
-                      AppUtils.formatCurrency(user.walletBalance)),
-                  _divider(),
-                  _statItem('Total Bets', '$totalBets'),
-                  _divider(),
-                  _statItem('Won', '$wonBets'),
-                ],
-              ),
-
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Profile info card
               _infoCard([
@@ -104,20 +92,18 @@ class ProfileScreen extends StatelessWidget {
                   Icons.verified_user,
                   'KYC Status',
                   user.kycVerified ? 'Verified' : 'Not Verified',
-                  valueColor:
-                      user.kycVerified ? AppColors.green : AppColors.orange,
+                  valueColor: user.kycVerified ? AppColors.green : AppColors.orange,
                 ),
                 _infoRow(Icons.badge, 'User ID', user.id),
               ]),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // Actions card
               _infoCard([
                 _actionRow(Icons.headset_mic, 'Contact Support', () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Support feature coming soon!')),
+                    const SnackBar(content: Text('Support feature coming soon!')),
                   );
                 }),
                 _actionRow(Icons.description, 'Terms & Conditions', () {
@@ -127,8 +113,7 @@ class ProfileScreen extends StatelessWidget {
                 }),
                 _actionRow(Icons.info_outline, 'About BetZone', () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('BetZone v1.0')),
+                    const SnackBar(content: Text('BetZone v1.0')),
                   );
                 }),
               ]),
@@ -143,20 +128,15 @@ class ProfileScreen extends StatelessWidget {
                     auth.logout();
                     context.go('/login');
                   },
-                  icon: const Icon(Icons.logout, color: AppColors.red),
+                  icon: const Icon(Icons.logout, color: AppColors.red, size: 18),
                   label: Text(
                     'Logout',
-                    style: GoogleFonts.poppins(
-                      color: AppColors.red,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: GoogleFonts.poppins(color: AppColors.red, fontWeight: FontWeight.w600),
                   ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.red),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
@@ -169,37 +149,19 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _statItem(String label, String value) {
+  Widget _statItem(String label, String value, Color color) {
     return Expanded(
       child: Column(
         children: [
           Text(
             value,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.accent,
-            ),
+            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: color),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              color: AppColors.textSecondary,
-            ),
-          ),
+          Text(label, style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textSecondary)),
         ],
       ),
-    );
-  }
-
-  Widget _divider() {
-    return Container(
-      width: 1,
-      height: 30,
-      color: AppColors.cardLight,
     );
   }
 
@@ -209,14 +171,14 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: Column(children: children),
     );
   }
 
-  Widget _infoRow(IconData icon, String label, String value,
-      {Color? valueColor}) {
+  Widget _infoRow(IconData icon, String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -224,21 +186,11 @@ class ProfileScreen extends StatelessWidget {
           Icon(icon, color: AppColors.accent, size: 18),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: AppColors.textSecondary,
-              ),
-            ),
+            child: Text(label, style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
           ),
           Text(
             value,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: valueColor ?? AppColors.white,
-            ),
+            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: valueColor ?? AppColors.white),
           ),
         ],
       ),
@@ -254,17 +206,8 @@ class ProfileScreen extends StatelessWidget {
           children: [
             Icon(icon, color: AppColors.accent, size: 18),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: AppColors.white,
-                ),
-              ),
-            ),
-            const Icon(Icons.chevron_right,
-                color: AppColors.grey, size: 20),
+            Expanded(child: Text(label, style: GoogleFonts.poppins(fontSize: 14, color: AppColors.white))),
+            const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
           ],
         ),
       ),

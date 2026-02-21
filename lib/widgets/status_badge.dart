@@ -16,79 +16,80 @@ class StatusBadge extends StatelessWidget {
 
     switch (status.toLowerCase()) {
       case 'live':
-        bgColor = AppColors.green.withValues(alpha: 0.2);
-        textColor = AppColors.green;
+        bgColor = AppColors.green.withValues(alpha: 0.15);
+        textColor = AppColors.greenLight;
         icon = Icons.circle;
         break;
       case 'upcoming':
-        bgColor = Colors.blue.withValues(alpha: 0.2);
-        textColor = Colors.lightBlueAccent;
+        bgColor = AppColors.blue.withValues(alpha: 0.15);
+        textColor = AppColors.blue;
         icon = Icons.schedule;
         break;
       case 'closed':
-        bgColor = AppColors.orange.withValues(alpha: 0.2);
+        bgColor = AppColors.orange.withValues(alpha: 0.15);
         textColor = AppColors.orange;
         icon = Icons.lock;
         break;
       case 'settled':
-        bgColor = AppColors.grey.withValues(alpha: 0.2);
-        textColor = AppColors.grey;
+        bgColor = AppColors.grey.withValues(alpha: 0.15);
+        textColor = AppColors.greyLight;
         icon = Icons.check_circle;
         break;
       case 'active':
-        bgColor = AppColors.accent.withValues(alpha: 0.2);
+        bgColor = AppColors.accent.withValues(alpha: 0.15);
         textColor = AppColors.accent;
         icon = Icons.pending;
         break;
       case 'won':
-        bgColor = AppColors.green.withValues(alpha: 0.2);
-        textColor = AppColors.green;
+        bgColor = AppColors.green.withValues(alpha: 0.15);
+        textColor = AppColors.greenLight;
         icon = Icons.emoji_events;
         break;
       case 'lost':
-        bgColor = AppColors.red.withValues(alpha: 0.2);
-        textColor = AppColors.red;
+        bgColor = AppColors.red.withValues(alpha: 0.15);
+        textColor = AppColors.redLight;
         icon = Icons.cancel;
         break;
       case 'pending':
-        bgColor = AppColors.orange.withValues(alpha: 0.2);
+        bgColor = AppColors.orange.withValues(alpha: 0.15);
         textColor = AppColors.orange;
         icon = Icons.hourglass_empty;
         break;
       case 'approved':
-        bgColor = AppColors.green.withValues(alpha: 0.2);
-        textColor = AppColors.green;
+        bgColor = AppColors.green.withValues(alpha: 0.15);
+        textColor = AppColors.greenLight;
         icon = Icons.check;
         break;
       case 'completed':
-        bgColor = AppColors.grey.withValues(alpha: 0.2);
-        textColor = AppColors.grey;
+        bgColor = AppColors.grey.withValues(alpha: 0.15);
+        textColor = AppColors.greyLight;
         icon = Icons.done_all;
         break;
       default:
-        bgColor = AppColors.grey.withValues(alpha: 0.2);
-        textColor = AppColors.grey;
+        bgColor = AppColors.grey.withValues(alpha: 0.15);
+        textColor = AppColors.greyLight;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: textColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
             Icon(icon,
-                size: status == 'live' ? 8 : 12,
+                size: status == 'live' ? 7 : 11,
                 color: textColor),
-            const SizedBox(width: 4),
+            const SizedBox(width: 3),
           ],
           Text(
             status.toUpperCase(),
             style: GoogleFonts.poppins(
-              fontSize: fontSize ?? 10,
+              fontSize: fontSize ?? 9,
               fontWeight: FontWeight.w700,
               color: textColor,
               letterSpacing: 0.5,

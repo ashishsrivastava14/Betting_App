@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import '../../providers/bet_provider.dart';
-import '../../providers/event_provider.dart';
+import 'package:fl_chart/fl_chart.dart';
+import '../../mock_data/mock_bets.dart';
+import '../../mock_data/mock_transactions.dart';
+import '../../mock_data/mock_events.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_utils.dart';
 
@@ -12,16 +12,13 @@ class AdminReportsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final betProvider = context.watch<BetProvider>();
-    final eventProvider = context.watch<EventProvider>();
-
-    // Mock chart data
-    final wonBets =
-        betProvider.bets.where((b) => b.status == 'won').length;
-    final lostBets =
-        betProvider.bets.where((b) => b.status == 'lost').length;
-    final activeBets =
-        betProvider.bets.where((b) => b.status == 'active').length;
+    final totalBets = mockBets.length;
+    final totalBetAmount = mockBets.fold<double>(0, (s, b) => s + b.amount);
+    final totalDeposits = mockTransactions.where((t) => t.type == 'deposit' && t.status == 'approved').fold<double>(0, (s, t) => s + t.amount);
+    final totalWithdrawals = mockTransactions.where((t) => t.type == 'withdrawal' && t.status == 'approved').fold<double>(0, (s, t) => s + t.amount);
+    final wonBets = mockBets.where((b) => b.status == 'won').length;
+    final lostBets = mockBets.where((b) => b.status == 'lost').length;
+    final pendingBets = mockBets.where((b) => b.status == 'pending').length;
 
     return Scaffold(
       body: SafeArea(
@@ -30,69 +27,110 @@ class AdminReportsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Reports & Analytics',
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
+              Row(
+                children: [
+                  const Icon(Icons.bar_chart_rounded, color: AppColors.accent, size: 22),
+                  const SizedBox(width: 10),
+                  Text('Reports', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.white)),
+                ],
               ),
+              const SizedBox(height: 16),
 
+              // Summary Stats
+              Row(children: [
+                _statCard('Total Bets', '$totalBets', Icons.receipt_long_rounded, AppColors.blue),
+                const SizedBox(width: 10),
+                _statCard('Bet Volume', AppUtils.formatCurrency(totalBetAmount), Icons.monetization_on_outlined, AppColors.accent),
+              ]),
+              const SizedBox(height: 10),
+              Row(children: [
+                _statCard('Deposits', AppUtils.formatCurrency(totalDeposits), Icons.arrow_downward_rounded, AppColors.green),
+                const SizedBox(width: 10),
+                _statCard('Withdrawals', AppUtils.formatCurrency(totalWithdrawals), Icons.arrow_upward_rounded, AppColors.red),
+              ]),
               const SizedBox(height: 20),
 
-              // Daily Revenue Bar Chart
-              _sectionTitle('Daily Revenue (Last 7 Days)'),
+              // Bet Status Chart
+              _sectionHeader(Icons.pie_chart_outline, 'Bet Status Distribution'),
               const SizedBox(height: 12),
               Container(
-                height: 220,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.card,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 140,
+                      height: 140,
+                      child: PieChart(
+                        PieChartData(
+                          sectionsSpace: 2,
+                          centerSpaceRadius: 30,
+                          sections: [
+                            PieChartSectionData(value: wonBets.toDouble(), color: AppColors.green, radius: 30, title: '$wonBets',
+                                titleStyle: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.white)),
+                            PieChartSectionData(value: lostBets.toDouble(), color: AppColors.red, radius: 30, title: '$lostBets',
+                                titleStyle: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.white)),
+                            PieChartSectionData(value: pendingBets.toDouble(), color: AppColors.orange, radius: 30, title: '$pendingBets',
+                                titleStyle: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.white)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      _legendItem('Won', AppColors.green),
+                      const SizedBox(height: 8),
+                      _legendItem('Lost', AppColors.red),
+                      const SizedBox(height: 8),
+                      _legendItem('Pending', AppColors.orange),
+                    ]),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Revenue Bar Chart
+              _sectionHeader(Icons.show_chart_rounded, 'Revenue Overview'),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                height: 220,
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.cardBorder),
                 ),
                 child: BarChart(
                   BarChartData(
                     alignment: BarChartAlignment.spaceAround,
-                    maxY: 15000,
-                    barTouchData: BarTouchData(
-                      touchTooltipData: BarTouchTooltipData(
-                        getTooltipColor: (_) => AppColors.cardLight,
-                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                          return BarTooltipItem(
-                            AppUtils.formatCurrency(rod.toY),
-                            GoogleFonts.poppins(
-                              color: AppColors.accent,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                    maxY: (totalDeposits > totalWithdrawals ? totalDeposits : totalWithdrawals) * 1.3,
+                    barGroups: [
+                      BarChartGroupData(x: 0, barRods: [
+                        BarChartRodData(toY: totalDeposits, color: AppColors.green, width: 28, borderRadius: const BorderRadius.vertical(top: Radius.circular(6))),
+                      ]),
+                      BarChartGroupData(x: 1, barRods: [
+                        BarChartRodData(toY: totalWithdrawals, color: AppColors.red, width: 28, borderRadius: const BorderRadius.vertical(top: Radius.circular(6))),
+                      ]),
+                      BarChartGroupData(x: 2, barRods: [
+                        BarChartRodData(toY: totalBetAmount, color: AppColors.accent, width: 28, borderRadius: const BorderRadius.vertical(top: Radius.circular(6))),
+                      ]),
+                    ],
                     titlesData: FlTitlesData(
-                      leftTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false)),
-                      rightTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false)),
-                      topTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false)),
+                      leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
-                          getTitlesWidget: (value, meta) {
-                            final days = [
-                              'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
-                            ];
+                          getTitlesWidget: (v, _) {
+                            final labels = ['Deposits', 'Withdrawals', 'Bets'];
                             return Padding(
                               padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                days[value.toInt() % 7],
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
+                              child: Text(labels[v.toInt()], style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textSecondary)),
                             );
                           },
                         ),
@@ -100,234 +138,76 @@ class AdminReportsScreen extends StatelessWidget {
                     ),
                     gridData: const FlGridData(show: false),
                     borderData: FlBorderData(show: false),
-                    barGroups: [
-                      _barGroup(0, 8500),
-                      _barGroup(1, 12000),
-                      _barGroup(2, 6800),
-                      _barGroup(3, 9500),
-                      _barGroup(4, 11200),
-                      _barGroup(5, 14500),
-                      _barGroup(6, 7200),
-                    ],
+                    barTouchData: BarTouchData(
+                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipColor: (_) => AppColors.cardLight,
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          return BarTooltipItem(
+                            AppUtils.formatCurrency(rod.toY),
+                            GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.white),
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
 
-              const SizedBox(height: 24),
-
-              // Win/Loss Pie Chart
-              _sectionTitle('Bet Distribution'),
+              // Event-wise Table
+              _sectionHeader(Icons.table_chart_rounded, 'Event-wise Earnings'),
               const SizedBox(height: 12),
               Container(
-                height: 220,
-                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.card,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: PieChart(
-                        PieChartData(
-                          centerSpaceRadius: 30,
-                          sectionsSpace: 3,
-                          sections: [
-                            PieChartSectionData(
-                              value: wonBets.toDouble(),
-                              color: AppColors.green,
-                              title: 'Won',
-                              titleStyle: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                              radius: 55,
-                            ),
-                            PieChartSectionData(
-                              value: lostBets.toDouble(),
-                              color: AppColors.red,
-                              title: 'Lost',
-                              titleStyle: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                              radius: 55,
-                            ),
-                            PieChartSectionData(
-                              value: activeBets.toDouble(),
-                              color: AppColors.accent,
-                              title: 'Active',
-                              titleStyle: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                              radius: 55,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _legendItem('Won', '$wonBets', AppColors.green),
-                        const SizedBox(height: 8),
-                        _legendItem('Lost', '$lostBets', AppColors.red),
-                        const SizedBox(height: 8),
-                        _legendItem(
-                            'Active', '$activeBets', AppColors.accent),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Event-wise earnings table
-              _sectionTitle('Event-wise Earnings'),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.cardBorder),
                 ),
                 child: Column(
                   children: [
-                    // Header
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: const BoxDecoration(
                         color: AppColors.cardLight,
-                        borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(16)),
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
                       ),
-                      child: Row(
-                        children: [
+                      child: Row(children: [
+                        Expanded(flex: 3, child: Text('Event', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.accent))),
+                        Expanded(flex: 1, child: Text('Bets', textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.accent))),
+                        Expanded(flex: 2, child: Text('Volume', textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.accent))),
+                      ]),
+                    ),
+                    ...mockEvents.map((event) {
+                      final eventBets = mockBets.where((b) => b.eventId == event.id).toList();
+                      final volume = eventBets.fold<double>(0, (s, b) => s + b.amount);
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: const BoxDecoration(
+                          border: Border(top: BorderSide(color: AppColors.cardBorder, width: 0.5)),
+                        ),
+                        child: Row(children: [
                           Expanded(
                             flex: 3,
-                            child: Text('Event',
-                                style: _headerStyle()),
+                            child: Text('${event.team1} vs ${event.team2}',
+                                style: GoogleFonts.poppins(fontSize: 12, color: AppColors.white),
+                                overflow: TextOverflow.ellipsis),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Text('${eventBets.length}', textAlign: TextAlign.center,
+                                style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
                           ),
                           Expanded(
                             flex: 2,
-                            child: Text('Total Bets',
-                                style: _headerStyle(),
-                                textAlign: TextAlign.center),
+                            child: Text(AppUtils.formatCurrency(volume), textAlign: TextAlign.right,
+                                style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.accent)),
                           ),
-                          Expanded(
-                            flex: 2,
-                            child: Text('Earnings',
-                                style: _headerStyle(),
-                                textAlign: TextAlign.end),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ...eventProvider.adminAllEvents.map((event) {
-                      final eventBets = betProvider
-                          .getBetsForEvent(event.id);
-                      final totalBetAmount = eventBets.fold<double>(
-                          0, (sum, b) => sum + b.amount);
-                      final totalPayout = eventBets
-                          .where((b) => b.status == 'won')
-                          .fold<double>(
-                              0, (sum, b) => sum + b.potentialWin);
-                      final earnings = totalBetAmount - totalPayout;
-
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: AppColors.cardLight
-                                  .withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Text(
-                                event.name,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  color: AppColors.white,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                '${eventBets.length}',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                AppUtils.formatCurrency(earnings),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: earnings >= 0
-                                      ? AppColors.green
-                                      : AppColors.red,
-                                ),
-                                textAlign: TextAlign.end,
-                              ),
-                            ),
-                          ],
-                        ),
+                        ]),
                       );
                     }),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              // Export button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Export feature coming soon')),
-                    );
-                  },
-                  icon: const Icon(Icons.download),
-                  label: Text(
-                    'Export Report',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.accent),
-                    foregroundColor: AppColors.accent,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-
               const SizedBox(height: 24),
             ],
           ),
@@ -336,64 +216,55 @@ class AdminReportsScreen extends StatelessWidget {
     );
   }
 
-  BarChartGroupData _barGroup(int x, double y) {
-    return BarChartGroupData(
-      x: x,
-      barRods: [
-        BarChartRodData(
-          toY: y,
-          color: AppColors.accent,
-          width: 18,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-          backDrawRodData: BackgroundBarChartRodData(
-            show: true,
-            toY: 15000,
-            color: AppColors.cardLight,
-          ),
+  static Widget _statCard(String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.cardBorder),
         ),
-      ],
-    );
-  }
-
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.poppins(
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        color: AppColors.white,
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: color.withValues(alpha: 0.12),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(value, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.white), overflow: TextOverflow.ellipsis),
+                  Text(label, style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _legendItem(String label, String value, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '$label ($value)',
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
-    );
+  static Widget _sectionHeader(IconData icon, String label) {
+    return Row(children: [
+      Icon(icon, color: AppColors.accent, size: 18),
+      const SizedBox(width: 8),
+      Text(label, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.white)),
+    ]);
   }
 
-  TextStyle _headerStyle() {
-    return GoogleFonts.poppins(
-      fontSize: 11,
-      fontWeight: FontWeight.w700,
-      color: AppColors.accent,
-    );
+  static Widget _legendItem(String label, Color color) {
+    return Row(children: [
+      Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
+      const SizedBox(width: 8),
+      Text(label, style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
+    ]);
   }
 }

@@ -24,20 +24,23 @@ class AdminEventsScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
                 children: [
+                  const Icon(Icons.event_note_rounded, color: AppColors.accent, size: 22),
+                  const SizedBox(width: 10),
                   Text(
                     'Manage Events',
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.white,
-                    ),
+                    style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.white),
                   ),
                   const Spacer(),
-                  Text(
-                    '${events.length} events',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Text(
+                      '${events.length}',
+                      style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.accent),
                     ),
                   ),
                 ],
@@ -60,11 +63,9 @@ class AdminEventsScreen extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: event.isEnabled
-                            ? AppColors.card
-                            : AppColors.card.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.cardLight),
+                        color: event.isEnabled ? AppColors.card : AppColors.card.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.cardBorder),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,83 +75,55 @@ class AdminEventsScreen extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   event.name,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.white,
-                                  ),
+                                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.white),
                                 ),
                               ),
                               StatusBadge(status: event.status),
                             ],
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
                           Text(
-                            '${event.team1} vs ${event.team2} • ${event.eventType}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
+                            '${event.team1} vs ${event.team2} \u2022 ${event.eventType}',
+                            style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary),
                           ),
                           Text(
                             'Start: ${AppUtils.formatDate(event.startTime)}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: AppColors.grey,
-                            ),
+                            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textMuted),
                           ),
                           const SizedBox(height: 8),
                           Row(
                             children: [
                               if (!event.isEnabled)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color:
-                                        AppColors.red.withValues(alpha: 0.15),
+                                    color: AppColors.red.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: AppColors.red.withValues(alpha: 0.3)),
                                   ),
                                   child: Text(
                                     'DISABLED',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.red,
-                                    ),
+                                    style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.red),
                                   ),
                                 ),
                               const Spacer(),
-                              // Toggle enable/disable
                               IconButton(
                                 icon: Icon(
-                                  event.isEnabled
-                                      ? Icons.toggle_on
-                                      : Icons.toggle_off,
-                                  color: event.isEnabled
-                                      ? AppColors.green
-                                      : AppColors.grey,
+                                  event.isEnabled ? Icons.toggle_on : Icons.toggle_off,
+                                  color: event.isEnabled ? AppColors.green : AppColors.textMuted,
                                   size: 30,
                                 ),
                                 onPressed: () {
-                                  eventProvider
-                                      .toggleEventEnabled(event.id);
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    content: Text(event.isEnabled
-                                        ? 'Event enabled'
-                                        : 'Event disabled'),
-                                  ));
+                                  eventProvider.toggleEventEnabled(event.id);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(event.isEnabled ? 'Event enabled' : 'Event disabled')),
+                                  );
                                 },
                               ),
-                              // Declare result
-                              if (event.status == 'live' ||
-                                  event.status == 'closed')
+                              if (event.status == 'live' || event.status == 'closed')
                                 IconButton(
-                                  icon: const Icon(Icons.gavel,
-                                      color: AppColors.gold, size: 22),
-                                  onPressed: () => context
-                                      .push('/admin/events/declare'),
+                                  icon: const Icon(Icons.gavel, color: AppColors.accent, size: 20),
+                                  onPressed: () => context.push('/admin/events/declare'),
                                   tooltip: 'Declare Result',
                                 ),
                             ],
@@ -167,11 +140,11 @@ class AdminEventsScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/admin/events/create'),
-        icon: const Icon(Icons.add),
-        label: Text('Create Event',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+        icon: const Icon(Icons.add, size: 20),
+        label: Text('Create Event', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.background,
+        elevation: 0,
       ),
     );
   }

@@ -32,42 +32,25 @@ class _LoginScreenState extends State<LoginScreen> {
             key: _formKey,
             child: Column(
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 48),
 
-                // Logo + App name
+                // Logo
                 Container(
-                  width: 120,
-                  height: 120,
+                  width: 100,
+                  height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.accent,
-                        AppColors.primary,
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        spreadRadius: 2,
-                      ),
-                    ],
+                    color: AppColors.accent.withValues(alpha: 0.12),
+                    border: Border.all(color: AppColors.accent, width: 2),
                   ),
-                  child: const Icon(
-                    Icons.sports_cricket,
-                    size: 56,
-                    color: Colors.white,
-                  ),
+                  child: const Icon(Icons.sports_cricket, size: 48, color: AppColors.accent),
                 ),
                 const SizedBox(height: 20),
 
                 Text(
                   'BetZone',
                   style: GoogleFonts.poppins(
-                    fontSize: 32,
+                    fontSize: 30,
                     fontWeight: FontWeight.w800,
                     color: AppColors.accent,
                     letterSpacing: 2,
@@ -76,57 +59,46 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Cricket Betting Platform',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                    letterSpacing: 1,
-                  ),
+                  style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary, letterSpacing: 1),
                 ),
 
                 const SizedBox(height: 48),
 
-                // Sign Up heading
+                // Sign In heading
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Sign In',
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.white,
-                    ),
+                    style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.white),
                   ),
                 ),
-                const SizedBox(height: 24),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Enter your mobile number to continue',
+                    style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
+                  ),
+                ),
+                const SizedBox(height: 20),
 
                 // Phone input
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   maxLength: 10,
-                  style: GoogleFonts.poppins(color: AppColors.white),
+                  style: GoogleFonts.poppins(color: AppColors.white, fontSize: 16),
                   decoration: InputDecoration(
-                    hintText: 'Enter Mobile Number',
+                    hintText: 'Mobile Number',
                     prefixIcon: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.phone, color: AppColors.accent),
+                          const Icon(Icons.phone, color: AppColors.accent, size: 20),
                           const SizedBox(width: 8),
-                          Text(
-                            '+91',
-                            style: GoogleFonts.poppins(
-                              color: AppColors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          Text('+91', style: GoogleFonts.poppins(color: AppColors.white, fontWeight: FontWeight.w600)),
                           const SizedBox(width: 8),
-                          Container(
-                            width: 1,
-                            height: 24,
-                            color: AppColors.white54,
-                          ),
+                          Container(width: 1, height: 24, color: AppColors.cardBorder),
                         ],
                       ),
                     ),
@@ -138,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
 
                 // Send OTP button
                 SizedBox(
@@ -146,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 52,
                   child: Consumer<AuthProvider>(
                     builder: (context, auth, _) {
-                      return ElevatedButton(
+                      return ElevatedButton.icon(
                         onPressed: auth.isLoading
                             ? null
                             : () {
@@ -155,60 +127,35 @@ class _LoginScreenState extends State<LoginScreen> {
                                   context.push('/otp');
                                 }
                               },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: auth.isLoading
+                        icon: auth.isLoading
+                            ? const SizedBox.shrink()
+                            : const Icon(Icons.bolt, size: 20),
+                        label: auth.isLoading
                             ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.background,
-                                ),
+                                height: 24, width: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.background),
                               )
                             : Text(
                                 'SEND OTP',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.background,
-                                  letterSpacing: 1,
-                                ),
+                                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 1),
                               ),
                       );
                     },
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                // Footer text
+                // Footer
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Already have an account? ',
-                      style: GoogleFonts.poppins(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                    Text(
-                      'Login',
-                      style: GoogleFonts.poppins(
-                        color: AppColors.accent,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Text('By continuing, you agree to our ',
+                        style: GoogleFonts.poppins(color: AppColors.textMuted, fontSize: 11)),
+                    Text('Terms',
+                        style: GoogleFonts.poppins(color: AppColors.accent, fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ),
-
-                const SizedBox(height: 16),
               ],
             ),
           ),

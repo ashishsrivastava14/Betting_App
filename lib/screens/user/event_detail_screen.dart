@@ -41,6 +41,18 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return _betAmount * option.multiplier;
   }
 
+  Color _getTeamColor(int index) {
+    return index == 0 ? const Color(0xFF3498DB) : const Color(0xFFE74C3C);
+  }
+
+  String _getTeamInitials(String name) {
+    final words = name.trim().split(' ');
+    if (words.length >= 2) {
+      return '${words[0][0]}${words[1][0]}'.toUpperCase();
+    }
+    return name.substring(0, name.length >= 3 ? 3 : name.length).toUpperCase();
+  }
+
   void _placeBet() {
     final auth = context.read<AuthProvider>();
     final eventProvider = context.read<EventProvider>();
@@ -77,10 +89,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       createdAt: DateTime.now(),
     );
 
-    // Deduct balance
     walletProvider.deductBalance(auth.currentUser!, _betAmount);
-
-    // Add bet transaction
     walletProvider.addTransaction(TransactionModel(
       id: AppUtils.generateId('TXN'),
       userId: auth.currentUser!.id,
@@ -90,11 +99,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       createdAt: DateTime.now(),
       notes: 'Bet on ${event.name} - $_selectedOption',
     ));
-
-    // Add bet to provider
     context.read<BetProvider>().placeBet(bet);
 
-    // Show success dialog
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -107,10 +113,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.green.withValues(alpha: 0.2),
+                color: AppColors.green.withValues(alpha: 0.15),
               ),
-              child:
-                  const Icon(Icons.check_circle, color: AppColors.green, size: 48),
+              child: const Icon(Icons.check_circle,
+                  color: AppColors.green, size: 48),
             ),
             const SizedBox(height: 16),
             Text(
@@ -181,128 +187,184 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         event.status == 'live' || event.status == 'upcoming';
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: Text(event.eventType),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.surface,
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: const Icon(Icons.arrow_back, size: 18),
+          ),
           onPressed: () => context.go('/home'),
         ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.account_balance_wallet_outlined,
+                    size: 14, color: AppColors.accent),
+                const SizedBox(width: 4),
+                Text(
+                  AppUtils.formatCurrency(
+                      auth.currentUser?.walletBalance ?? 0),
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Match header
+            // ── Match Header Card ──
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.card],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: AppColors.accent.withValues(alpha: 0.2)),
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.cardBorder),
               ),
               child: Column(
                 children: [
                   Text(
                     event.name,
                     style: GoogleFonts.poppins(
-                      fontSize: 13,
+                      fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
+                  // Teams row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _teamWidget(event.team1),
+                      _teamAvatar(event.team1, 0),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Column(
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 6),
+                                  horizontal: 12, vertical: 5),
                               decoration: BoxDecoration(
-                                color: AppColors.accent.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(8),
+                                border:
+                                    Border.all(color: AppColors.cardBorder),
                               ),
                               child: Text(
                                 'VS',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w800,
-                                  color: AppColors.accent,
+                                  color: AppColors.textSecondary,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 6),
                             Text(
                               AppUtils.formatDateShort(event.startTime),
                               style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
+                                fontSize: 10,
+                                color: AppColors.textMuted,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      _teamWidget(event.team2),
+                      _teamAvatar(event.team2, 1),
                     ],
                   ),
-                  if (isBettingOpen) ...[
-                    const SizedBox(height: 16),
-                    CountdownTimerWidget(
-                      targetTime: event.betCloseTime,
-                      prefix: '⏱ Bets close in: ',
-                    ),
-                  ] else ...[
-                    const SizedBox(height: 12),
-                    if (event.winningOption != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.gold.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.emoji_events,
-                                color: AppColors.gold, size: 18),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Winner: ${event.winningOption}',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.gold,
-                              ),
-                            ),
-                          ],
+                  const SizedBox(height: 16),
+                  if (isBettingOpen)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: event.status == 'live'
+                            ? AppColors.green.withValues(alpha: 0.1)
+                            : AppColors.accent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: event.status == 'live'
+                              ? AppColors.green.withValues(alpha: 0.3)
+                              : AppColors.accent.withValues(alpha: 0.3),
                         ),
                       ),
-                  ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.timer_outlined,
+                              size: 14,
+                              color: event.status == 'live'
+                                  ? AppColors.green
+                                  : AppColors.accent),
+                          const SizedBox(width: 6),
+                          CountdownTimerWidget(
+                            targetTime: event.betCloseTime,
+                            prefix: 'Bets close in: ',
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (event.winningOption != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: AppColors.gold.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.emoji_events,
+                              color: AppColors.gold, size: 16),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Winner: ${event.winningOption}',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: AppColors.gold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Betting Options
-            Text(
-              'Select Your Bet',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.white,
-              ),
-            ),
-            const SizedBox(height: 12),
+            // ── Betting Options ──
+            _sectionHeader('Select Your Bet', Icons.how_to_vote_outlined),
+            const SizedBox(height: 10),
 
             ...event.options.map((opt) {
               final isSelected = _selectedOption == opt.label;
@@ -312,65 +374,72 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     : null,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.accent.withValues(alpha: 0.15)
+                        ? AppColors.accent.withValues(alpha: 0.1)
                         : AppColors.card,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected
                           ? AppColors.accent
-                          : AppColors.cardLight,
+                          : AppColors.cardBorder,
                       width: isSelected ? 2 : 1,
                     ),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        width: 24,
-                        height: 24,
+                        width: 22,
+                        height: 22,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: isSelected
                               ? AppColors.accent
-                              : AppColors.cardLight,
+                              : Colors.transparent,
                           border: Border.all(
                             color: isSelected
                                 ? AppColors.accent
                                 : AppColors.grey,
+                            width: 2,
                           ),
                         ),
                         child: isSelected
                             ? const Icon(Icons.check,
-                                size: 16, color: AppColors.background)
+                                size: 14, color: AppColors.background)
                             : null,
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           opt.label,
                           style: GoogleFonts.poppins(
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.white,
+                            color: isSelected
+                                ? AppColors.accent
+                                : AppColors.white,
                           ),
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                            horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: AppColors.accent.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
+                          color: isSelected
+                              ? AppColors.accent.withValues(alpha: 0.2)
+                              : AppColors.surface,
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           '${opt.multiplier}x',
                           style: GoogleFonts.poppins(
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.accent,
+                            color: isSelected
+                                ? AppColors.accent
+                                : AppColors.textSecondary,
                           ),
                         ),
                       ),
@@ -381,18 +450,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             }),
 
             if (isBettingOpen) ...[
-              const SizedBox(height: 24),
-
-              // Amount input
-              Text(
-                'Enter Amount',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
+              _sectionHeader('Enter Amount', Icons.currency_rupee),
+              const SizedBox(height: 10),
 
               TextFormField(
                 controller: _amountController,
@@ -409,59 +469,86 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   prefixIcon: const Icon(Icons.currency_rupee),
                 ),
               ),
+              const SizedBox(height: 10),
 
-              const SizedBox(height: 12),
-
-              // Quick amount chips
-              Wrap(
-                spacing: 10,
+              // Quick chips
+              Row(
                 children: _quickAmounts.map((amt) {
-                  return ActionChip(
-                    label: Text('₹$amt'),
-                    backgroundColor: AppColors.cardLight,
-                    labelStyle: GoogleFonts.poppins(
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.w600,
+                  final isActive = _betAmount == amt.toDouble();
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _betAmount = amt.toDouble();
+                          _amountController.text = amt.toString();
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? AppColors.accent.withValues(alpha: 0.15)
+                              : AppColors.surface,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isActive
+                                ? AppColors.accent
+                                : AppColors.cardBorder,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '₹$amt',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: isActive
+                                  ? AppColors.accent
+                                  : AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                    side: BorderSide(
-                        color: AppColors.accent.withValues(alpha: 0.3)),
-                    onPressed: () {
-                      setState(() {
-                        _betAmount = amt.toDouble();
-                        _amountController.text = amt.toString();
-                      });
-                    },
                   );
                 }).toList(),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Potential win
               if (_selectedOption != null && _betAmount > 0)
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(14),
+                    color: AppColors.gold.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                         color: AppColors.gold.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Potential Win',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
+                      Row(
+                        children: [
+                          const Icon(Icons.emoji_events,
+                              color: AppColors.gold, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Potential Win',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                       Text(
                         AppUtils.formatCurrency(_potentialWin),
                         style: GoogleFonts.poppins(
-                          fontSize: 22,
+                          fontSize: 20,
                           fontWeight: FontWeight.w800,
                           color: AppColors.gold,
                         ),
@@ -470,26 +557,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   ),
                 ),
 
-              const SizedBox(height: 16),
-
-              // Wallet balance
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.account_balance_wallet,
-                      color: AppColors.textSecondary, size: 14),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Balance: ${AppUtils.formatCurrency(auth.currentUser?.walletBalance ?? 0)}',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Place bet button
               SizedBox(
@@ -500,41 +568,49 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 0,
                   ),
-                  child: Text(
-                    'PLACE BET',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.bolt, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'PLACE BET',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
             ] else ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.red.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(14),
+                  color: AppColors.red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                       color: AppColors.red.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.lock, color: AppColors.red, size: 18),
+                    const Icon(Icons.lock_outline,
+                        color: AppColors.red, size: 18),
                     const SizedBox(width: 8),
                     Text(
                       'Betting is closed for this event',
                       style: GoogleFonts.poppins(
-                        fontSize: 14,
+                        fontSize: 13,
                         color: AppColors.red,
                         fontWeight: FontWeight.w600,
                       ),
@@ -549,36 +625,60 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
   }
 
-  Widget _teamWidget(String name) {
+  Widget _sectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.accent),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppColors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _teamAvatar(String name, int index) {
     return Column(
       children: [
         Container(
-          width: 56,
-          height: 56,
+          width: 60,
+          height: 60,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.cardLight,
+            color: _getTeamColor(index).withValues(alpha: 0.15),
             border: Border.all(
-                color: AppColors.accent.withValues(alpha: 0.3)),
+                color: _getTeamColor(index).withValues(alpha: 0.5),
+                width: 2),
           ),
           child: Center(
             child: Text(
-              name.substring(0, name.length >= 2 ? 2 : name.length).toUpperCase(),
+              _getTeamInitials(name),
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: AppColors.accent,
+                color: _getTeamColor(index),
               ),
             ),
           ),
         ),
         const SizedBox(height: 6),
-        Text(
-          name,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.white,
+        SizedBox(
+          width: 80,
+          child: Text(
+            name,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.white,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

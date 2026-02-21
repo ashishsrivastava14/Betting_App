@@ -35,84 +35,69 @@ class WalletScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Wallet',
-                  style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.white,
-                  ),
+                Row(
+                  children: [
+                    const Icon(Icons.account_balance_wallet_rounded,
+                        color: AppColors.accent, size: 24),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Wallet',
+                      style: GoogleFonts.poppins(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
-
-                // Balance card
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.card],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: AppColors.accent.withValues(alpha: 0.2)),
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     children: [
+                      const Icon(Icons.account_balance_wallet,
+                          color: AppColors.accent, size: 32),
+                      const SizedBox(height: 8),
                       Text(
                         'Available Balance',
                         style: GoogleFonts.poppins(
-                          fontSize: 14,
+                          fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Text(
                         AppUtils.formatCurrency(user.walletBalance),
                         style: GoogleFonts.poppins(
-                          fontSize: 36,
+                          fontSize: 32,
                           fontWeight: FontWeight.w800,
                           color: AppColors.accent,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                       Row(
                         children: [
                           Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () => context.push('/deposit'),
-                              icon: const Icon(Icons.add, size: 18),
-                              label: Text('Deposit',
-                                  style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.green,
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
+                            child: _actionBtn(
+                              Icons.arrow_downward_rounded,
+                              'Deposit',
+                              AppColors.green,
+                              () => context.push('/deposit'),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () => context.push('/withdraw'),
-                              icon: const Icon(Icons.remove, size: 18),
-                              label: Text('Withdraw',
-                                  style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.red,
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
+                            child: _actionBtn(
+                              Icons.arrow_upward_rounded,
+                              'Withdraw',
+                              AppColors.red,
+                              () => context.push('/withdraw'),
                             ),
                           ),
                         ],
@@ -120,39 +105,39 @@ class WalletScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 24),
-
-                // Transaction History
-                Text(
-                  'Transaction History',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.white,
-                  ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const Icon(Icons.receipt_long,
+                        size: 18, color: AppColors.accent),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Transaction History',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-
+                const SizedBox(height: 10),
                 if (transactions.isEmpty)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
                       color: AppColors.card,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.cardBorder),
                     ),
                     child: Column(
                       children: [
-                        Icon(Icons.receipt_long,
-                            size: 48,
-                            color: AppColors.accent.withValues(alpha: 0.3)),
+                        Icon(Icons.receipt_long, size: 40, color: AppColors.textMuted),
                         const SizedBox(height: 8),
                         Text(
                           'No transactions yet',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.textSecondary,
-                          ),
+                          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -167,10 +152,31 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
+  Widget _actionBtn(IconData icon, String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Text(label, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _transactionTile(dynamic txn) {
     IconData icon;
     Color iconColor;
-
     switch (txn.type) {
       case 'deposit':
         icon = Icons.arrow_downward;
@@ -192,27 +198,25 @@ class WalletScreen extends StatelessWidget {
         icon = Icons.swap_horiz;
         iconColor = AppColors.grey;
     }
-
     final isCredit = txn.type == 'deposit' || txn.type == 'win_credit';
-
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.cardLight),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: Row(
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
+              shape: BoxShape.circle,
+              color: iconColor.withValues(alpha: 0.12),
             ),
-            child: Icon(icon, color: iconColor, size: 20),
+            child: Icon(icon, color: iconColor, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -221,27 +225,17 @@ class WalletScreen extends StatelessWidget {
               children: [
                 Text(
                   txn.type.replaceAll('_', ' ').toUpperCase(),
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.white,
-                  ),
+                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.white),
                 ),
                 Text(
                   txn.notes ?? '',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   AppUtils.formatDateShort(txn.createdAt),
-                  style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    color: AppColors.grey,
-                  ),
+                  style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted),
                 ),
               ],
             ),
@@ -251,11 +245,7 @@ class WalletScreen extends StatelessWidget {
             children: [
               Text(
                 '${isCredit ? '+' : '-'}${AppUtils.formatCurrency(txn.amount)}',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: isCredit ? AppColors.green : AppColors.red,
-                ),
+                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: isCredit ? AppColors.green : AppColors.red),
               ),
               const SizedBox(height: 4),
               StatusBadge(status: txn.status, fontSize: 9),

@@ -40,78 +40,84 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Dashboard',
-                  style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.white,
-                  ),
+                // Header
+                Row(
+                  children: [
+                    const Icon(Icons.dashboard_rounded,
+                        color: AppColors.accent, size: 24),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Dashboard',
+                      style: GoogleFonts.poppins(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
                 // Wallet balance card
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
                         AppColors.accent,
-                        AppColors.accent.withValues(alpha: 0.7),
-                        AppColors.primary,
+                        AppColors.accentDark,
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.account_balance_wallet,
-                              color: Colors.white, size: 20),
-                          const SizedBox(width: 8),
+                          Icon(Icons.account_balance_wallet,
+                              color: AppColors.background.withValues(alpha: 0.7),
+                              size: 18),
+                          const SizedBox(width: 6),
                           Text(
                             'Wallet Balance',
                             style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.white70,
+                              fontSize: 12,
+                              color: AppColors.background.withValues(alpha: 0.7),
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         AppUtils.formatCurrency(user.walletBalance),
                         style: GoogleFonts.poppins(
-                          fontSize: 32,
+                          fontSize: 28,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: AppColors.background,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
-                          _quickAction(
-                            icon: Icons.add,
-                            label: 'Deposit',
-                            onTap: () => context.push('/deposit'),
+                          Expanded(
+                            child: _quickBtn(
+                              Icons.arrow_downward,
+                              'Deposit',
+                              () => context.push('/deposit'),
+                            ),
                           ),
-                          const SizedBox(width: 12),
-                          _quickAction(
-                            icon: Icons.remove,
-                            label: 'Withdraw',
-                            onTap: () => context.push('/withdraw'),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _quickBtn(
+                              Icons.arrow_upward,
+                              'Withdraw',
+                              () => context.push('/withdraw'),
+                            ),
                           ),
                         ],
                       ),
@@ -119,107 +125,67 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
                 // Stats row
                 Row(
                   children: [
-                    _statCard(
-                      icon: Icons.pending_actions,
-                      label: 'Active Bets',
-                      value: '${activeBets.length}',
-                      color: AppColors.accent,
-                    ),
+                    _statCard(Icons.pending_actions, 'Active',
+                        '${activeBets.length}', AppColors.blue),
                     const SizedBox(width: 10),
-                    _statCard(
-                      icon: Icons.emoji_events,
-                      label: 'Total Won',
-                      value: AppUtils.formatCurrency(totalWon),
-                      color: AppColors.green,
-                    ),
+                    _statCard(Icons.emoji_events, 'Won',
+                        AppUtils.formatCurrency(totalWon), AppColors.green),
                     const SizedBox(width: 10),
-                    _statCard(
-                      icon: Icons.trending_down,
-                      label: 'Total Lost',
-                      value: AppUtils.formatCurrency(totalLost),
-                      color: AppColors.red,
-                    ),
+                    _statCard(Icons.trending_down, 'Lost',
+                        AppUtils.formatCurrency(totalLost), AppColors.red),
                   ],
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-                // Recent Bets
+                // Recent bets
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    const Icon(Icons.receipt_long,
+                        size: 18, color: AppColors.accent),
+                    const SizedBox(width: 8),
                     Text(
                       'Recent Bets',
                       style: GoogleFonts.poppins(
-                        fontSize: 18,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.white,
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'View All',
-                        style: GoogleFonts.poppins(
-                          color: AppColors.accent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
 
                 if (userBets.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(Icons.sports_cricket,
-                            size: 48,
-                            color: AppColors.accent.withValues(alpha: 0.3)),
-                        const SizedBox(height: 8),
-                        Text(
-                          'No bets yet',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
+                  _emptyCard('No bets placed yet', Icons.casino_outlined)
                 else
                   ...userBets.take(5).map((bet) {
-                    final event = eventProvider.getEventById(bet.eventId);
+                    final event =
+                        eventProvider.getEventById(bet.eventId);
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppColors.card,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.cardLight),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.cardBorder),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            width: 42,
-                            height: 42,
+                            width: 40,
+                            height: 40,
                             decoration: BoxDecoration(
-                              color: AppColors.accent.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(10),
+                              shape: BoxShape.circle,
+                              color: AppColors.accent.withValues(alpha: 0.1),
                             ),
                             child: const Icon(Icons.sports_cricket,
-                                color: AppColors.accent, size: 20),
+                                color: AppColors.accent, size: 18),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -227,7 +193,7 @@ class DashboardScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  event?.name ?? 'Unknown Event',
+                                  event?.name ?? bet.eventId,
                                   style: GoogleFonts.poppins(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
@@ -236,8 +202,9 @@ class DashboardScreen extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
+                                const SizedBox(height: 2),
                                 Text(
-                                  '${bet.selectedOption} • ${AppUtils.formatCurrency(bet.amount)}',
+                                  '${bet.selectedOption} • ${bet.multiplier}x',
                                   style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     color: AppColors.textSecondary,
@@ -249,18 +216,16 @@ class DashboardScreen extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              StatusBadge(status: bet.status),
-                              const SizedBox(height: 4),
                               Text(
-                                AppUtils.formatCurrency(bet.potentialWin),
+                                AppUtils.formatCurrency(bet.amount),
                                 style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: bet.status == 'won'
-                                      ? AppColors.green
-                                      : AppColors.textSecondary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.white,
                                 ),
                               ),
+                              const SizedBox(height: 2),
+                              StatusBadge(status: bet.status),
                             ],
                           ),
                         ],
@@ -275,29 +240,26 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _quickAction({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+  Widget _quickBtn(IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: AppColors.background.withValues(alpha: 0.25),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 16),
+            Icon(icon, size: 16, color: AppColors.background),
             const SizedBox(width: 6),
             Text(
               label,
               style: GoogleFonts.poppins(
-                color: Colors.white,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
-                fontSize: 13,
+                color: AppColors.background,
               ),
             ),
           ],
@@ -306,25 +268,20 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _statCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
+  Widget _statCard(
+      IconData icon, String label, String value, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.cardBorder),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 8),
+            Icon(icon, color: color, size: 22),
+            const SizedBox(height: 6),
             Text(
               value,
               style: GoogleFonts.poppins(
@@ -344,6 +301,31 @@ class DashboardScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _emptyCard(String message, IconData icon) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 40, color: AppColors.textMuted),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }

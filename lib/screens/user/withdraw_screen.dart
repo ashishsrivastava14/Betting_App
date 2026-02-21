@@ -22,7 +22,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
   final _accountController = TextEditingController();
   final _ifscController = TextEditingController();
   double _amount = 0;
-  String _method = 'upi'; // 'upi' | 'bank'
+  String _method = 'upi';
 
   @override
   void dispose() {
@@ -40,24 +40,13 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     final user = auth.currentUser;
 
     if (user == null) return;
-
-    if (_amount <= 0) {
-      _showSnackbar('Please enter amount');
-      return;
-    }
-    if (_amount > user.walletBalance) {
-      _showSnackbar('Insufficient balance');
-      return;
-    }
+    if (_amount <= 0) { _showSnackbar('Please enter amount'); return; }
+    if (_amount > user.walletBalance) { _showSnackbar('Insufficient balance'); return; }
     if (_method == 'upi' && _upiController.text.trim().isEmpty) {
-      _showSnackbar('Please enter UPI ID');
-      return;
+      _showSnackbar('Please enter UPI ID'); return;
     }
-    if (_method == 'bank' &&
-        (_bankNameController.text.trim().isEmpty ||
-            _accountController.text.trim().isEmpty)) {
-      _showSnackbar('Please fill bank details');
-      return;
+    if (_method == 'bank' && (_bankNameController.text.trim().isEmpty || _accountController.text.trim().isEmpty)) {
+      _showSnackbar('Please fill bank details'); return;
     }
 
     final notes = _method == 'upi'
@@ -78,7 +67,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -86,38 +75,27 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.accent.withValues(alpha: 0.2),
+                color: AppColors.accent.withValues(alpha: 0.15),
               ),
-              child: const Icon(Icons.check_circle,
-                  color: AppColors.accent, size: 48),
+              child: const Icon(Icons.check_circle, color: AppColors.accent, size: 48),
             ),
             const SizedBox(height: 16),
             Text(
               'Request Submitted',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.white,
-              ),
+              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.white),
             ),
             const SizedBox(height: 8),
             Text(
               'Your withdrawal of ${AppUtils.formatCurrency(_amount)} is pending admin approval.',
-              style: GoogleFonts.poppins(
-                  fontSize: 13, color: AppColors.textSecondary),
+              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.pop();
-            },
-            child: Text('OK',
-                style: GoogleFonts.poppins(
-                    color: AppColors.accent, fontWeight: FontWeight.w600)),
+            onPressed: () { Navigator.pop(context); context.pop(); },
+            child: Text('OK', style: GoogleFonts.poppins(color: AppColors.accent, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -125,8 +103,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
   }
 
   void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -135,9 +112,17 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Withdraw'),
+        title: Text('Withdraw', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.card,
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: const Icon(Icons.arrow_back, size: 18),
+          ),
           onPressed: () => context.pop(),
         ),
       ),
@@ -152,65 +137,47 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.card,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.cardBorder),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Available Balance',
-                    style: GoogleFonts.poppins(
-                        color: AppColors.textSecondary, fontSize: 14),
+                  Row(
+                    children: [
+                      const Icon(Icons.account_balance_wallet, color: AppColors.accent, size: 18),
+                      const SizedBox(width: 8),
+                      Text('Available Balance',
+                          style: GoogleFonts.poppins(color: AppColors.textSecondary, fontSize: 13)),
+                    ],
                   ),
                   Text(
-                    AppUtils.formatCurrency(
-                        auth.currentUser?.walletBalance ?? 0),
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.accent,
-                    ),
+                    AppUtils.formatCurrency(auth.currentUser?.walletBalance ?? 0),
+                    style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.accent),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Amount
-            Text(
-              'Withdrawal Amount',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.white,
-              ),
-            ),
+            _sectionHeader(Icons.currency_rupee, 'Withdrawal Amount'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _amountController,
               keyboardType: TextInputType.number,
               style: GoogleFonts.poppins(color: AppColors.white, fontSize: 18),
-              onChanged: (v) =>
-                  setState(() => _amount = double.tryParse(v) ?? 0),
+              onChanged: (v) => setState(() => _amount = double.tryParse(v) ?? 0),
               decoration: const InputDecoration(
-                hintText: '₹ Enter amount',
+                hintText: 'Enter amount',
                 prefixIcon: Icon(Icons.currency_rupee),
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Payment method tabs
-            Text(
-              'Payment Method',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.white,
-              ),
-            ),
-            const SizedBox(height: 12),
+            _sectionHeader(Icons.payment, 'Payment Method'),
+            const SizedBox(height: 10),
 
             Row(
               children: [
@@ -235,28 +202,19 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               TextFormField(
                 controller: _bankNameController,
                 style: GoogleFonts.poppins(color: AppColors.white),
-                decoration: const InputDecoration(
-                  hintText: 'Bank Name',
-                  prefixIcon: Icon(Icons.account_balance),
-                ),
+                decoration: const InputDecoration(hintText: 'Bank Name', prefixIcon: Icon(Icons.account_balance)),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _accountController,
                 style: GoogleFonts.poppins(color: AppColors.white),
-                decoration: const InputDecoration(
-                  hintText: 'Account Number',
-                  prefixIcon: Icon(Icons.numbers),
-                ),
+                decoration: const InputDecoration(hintText: 'Account Number', prefixIcon: Icon(Icons.numbers)),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _ifscController,
                 style: GoogleFonts.poppins(color: AppColors.white),
-                decoration: const InputDecoration(
-                  hintText: 'IFSC Code',
-                  prefixIcon: Icon(Icons.code),
-                ),
+                decoration: const InputDecoration(hintText: 'IFSC Code', prefixIcon: Icon(Icons.code)),
               ),
             ],
 
@@ -265,20 +223,28 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
             SizedBox(
               width: double.infinity,
               height: 52,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
                 onPressed: _submitWithdrawal,
-                child: Text(
+                icon: const Icon(Icons.send, size: 18),
+                label: Text(
                   'Submit Withdrawal Request',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _sectionHeader(IconData icon, String label) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.accent),
+        const SizedBox(width: 8),
+        Text(label, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.white)),
+      ],
     );
   }
 
@@ -290,28 +256,24 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.accent.withValues(alpha: 0.15)
-                : AppColors.card,
+            color: isSelected ? AppColors.accent.withValues(alpha: 0.12) : AppColors.card,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.accent : AppColors.cardLight,
+              color: isSelected ? AppColors.accent : AppColors.cardBorder,
               width: isSelected ? 2 : 1,
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon,
-                  color: isSelected ? AppColors.accent : AppColors.grey,
-                  size: 18),
+              Icon(icon, color: isSelected ? AppColors.accent : AppColors.textMuted, size: 18),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? AppColors.accent : AppColors.grey,
+                  color: isSelected ? AppColors.accent : AppColors.textMuted,
                 ),
               ),
             ],

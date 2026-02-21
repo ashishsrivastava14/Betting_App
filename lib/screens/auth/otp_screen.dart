@@ -34,7 +34,6 @@ class _OtpScreenState extends State<OtpScreen> {
           backgroundColor: AppColors.green,
         ),
       );
-
       if (auth.isAdmin) {
         context.go('/admin');
       } else {
@@ -50,7 +49,15 @@ class _OtpScreenState extends State<OtpScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.card,
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: const Icon(Icons.arrow_back, size: 18),
+          ),
           onPressed: () => context.go('/login'),
         ),
       ),
@@ -60,34 +67,28 @@ class _OtpScreenState extends State<OtpScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+
+              const Icon(Icons.lock_outline, color: AppColors.accent, size: 40),
+              const SizedBox(height: 12),
 
               Text(
                 'Verify OTP',
-                style: GoogleFonts.poppins(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
+                style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.white),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                'We sent a 6-digit code to +91 ${auth.pendingPhone ?? ""}',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
+                'Enter the 6-digit code sent to +91 ${auth.pendingPhone ?? ""}',
+                style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
 
               // OTP Input
               PinCodeTextField(
                 appContext: context,
                 length: 6,
-                onChanged: (value) {
-                  _otp = value;
-                },
+                onChanged: (value) { _otp = value; },
                 onCompleted: (_) => _verifyOtp(),
                 keyboardType: TextInputType.number,
                 animationType: AnimationType.scale,
@@ -96,63 +97,53 @@ class _OtpScreenState extends State<OtpScreen> {
                   borderRadius: BorderRadius.circular(12),
                   fieldHeight: 52,
                   fieldWidth: 46,
-                  activeFillColor: AppColors.cardLight,
+                  activeFillColor: AppColors.card,
                   inactiveFillColor: AppColors.card,
-                  selectedFillColor: AppColors.cardLight,
+                  selectedFillColor: AppColors.card,
                   activeColor: AppColors.accent,
-                  inactiveColor: AppColors.cardLight,
+                  inactiveColor: AppColors.cardBorder,
                   selectedColor: AppColors.accent,
                 ),
                 enableActiveFill: true,
-                textStyle: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
+                textStyle: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.accent),
                 cursorColor: AppColors.accent,
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
               // Verify button
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: _verifyOtp,
-                  child: Text(
+                  icon: const Icon(Icons.check_circle, size: 20),
+                  label: Text(
                     'VERIFY',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                    ),
+                    style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 1),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Resend OTP
               Center(
-                child: TextButton(
+                child: TextButton.icon(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('OTP resent!')),
                     );
                   },
-                  child: Text(
+                  icon: const Icon(Icons.refresh, size: 16, color: AppColors.accent),
+                  label: Text(
                     'Resend OTP',
-                    style: GoogleFonts.poppins(
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: GoogleFonts.poppins(color: AppColors.accent, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
 
               const Spacer(),
-
             ],
           ),
         ),

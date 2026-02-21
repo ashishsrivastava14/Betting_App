@@ -36,7 +36,7 @@ class _DepositScreenState extends State<DepositScreen> {
     final auth = context.read<AuthProvider>();
     final userId = auth.currentUser?.id ?? 'Unknown';
     final message = Uri.encodeComponent(
-      'Hi Admin, I want to deposit ₹${_amount.toInt()}. My User ID is $userId.',
+      'Hi Admin, I want to deposit ${AppUtils.formatCurrency(_amount)}. My User ID is $userId.',
     );
 
     final url = Uri.parse('https://wa.me/919999999999?text=$message');
@@ -56,9 +56,17 @@ class _DepositScreenState extends State<DepositScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Deposit'),
+        title: Text('Deposit', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.card,
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: const Icon(Icons.arrow_back, size: 18),
+          ),
           onPressed: () => context.pop(),
         ),
       ),
@@ -67,55 +75,92 @@ class _DepositScreenState extends State<DepositScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
-            // Amount input
-            Text(
-              'Enter Deposit Amount',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.white,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            TextFormField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              style: GoogleFonts.poppins(
-                  color: AppColors.white, fontSize: 24, fontWeight: FontWeight.w700),
-              onChanged: (v) {
-                setState(() => _amount = double.tryParse(v) ?? 0);
-              },
-              decoration: InputDecoration(
-                hintText: '₹ 0',
-                prefixIcon: const Icon(Icons.currency_rupee, size: 28),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Quick chips
-            Wrap(
-              spacing: 10,
-              runSpacing: 8,
-              children: _quickAmounts.map((amt) {
-                return ActionChip(
-                  label: Text('₹${AppUtils.formatCurrency(amt.toDouble()).replaceAll('₹', '')}'),
-                  backgroundColor: AppColors.cardLight,
-                  labelStyle: GoogleFonts.poppins(
-                    color: AppColors.accent,
-                    fontWeight: FontWeight.w600,
+            // Amount input section
+            Row(
+              children: [
+                const Icon(Icons.currency_rupee, color: AppColors.accent, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Enter Deposit Amount',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
                   ),
-                  side: BorderSide(
-                      color: AppColors.accent.withValues(alpha: 0.3)),
-                  onPressed: () {
-                    setState(() {
-                      _amount = amt.toDouble();
-                      _amountController.text = amt.toString();
-                    });
-                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: TextFormField(
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                style: GoogleFonts.poppins(
+                    color: AppColors.accent, fontSize: 28, fontWeight: FontWeight.w700),
+                onChanged: (v) {
+                  setState(() => _amount = double.tryParse(v) ?? 0);
+                },
+                decoration: InputDecoration(
+                  hintText: '0',
+                  hintStyle: GoogleFonts.poppins(
+                      color: AppColors.textMuted, fontSize: 28, fontWeight: FontWeight.w700),
+                  prefixIcon: const Icon(Icons.currency_rupee, size: 28, color: AppColors.accent),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  fillColor: Colors.transparent,
+                  filled: true,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Quick amount chips
+            Row(
+              children: _quickAmounts.map((amt) {
+                final isSelected = _amount == amt.toDouble();
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _amount = amt.toDouble();
+                        _amountController.text = amt.toString();
+                      });
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(right: amt == _quickAmounts.last ? 0 : 8),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.accent.withValues(alpha: 0.15)
+                            : AppColors.card,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isSelected ? AppColors.accent : AppColors.cardBorder,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          amt >= 1000 ? '${amt ~/ 1000}K' : '$amt',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected ? AppColors.accent : AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               }).toList(),
             ),
@@ -131,14 +176,12 @@ class _DepositScreenState extends State<DepositScreen> {
                 icon: const Icon(Icons.chat, size: 20),
                 label: Text(
                   'Proceed to WhatsApp',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF25D366),
                   foregroundColor: Colors.white,
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -148,30 +191,24 @@ class _DepositScreenState extends State<DepositScreen> {
 
             const SizedBox(height: 20),
 
-            // Note
+            // Info note
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                    color: AppColors.orange.withValues(alpha: 0.3)),
+                color: AppColors.accent.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.accent.withValues(alpha: 0.2)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.info_outline,
-                      color: AppColors.orange, size: 20),
+                  const Icon(Icons.info_outline, color: AppColors.accent, size: 18),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Admin will verify and credit within 30 minutes. Your deposit will reflect in your wallet once approved.',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: AppColors.orange,
-                        height: 1.5,
-                      ),
+                      style: GoogleFonts.poppins(fontSize: 12, color: AppColors.accent, height: 1.5),
                     ),
                   ),
                 ],

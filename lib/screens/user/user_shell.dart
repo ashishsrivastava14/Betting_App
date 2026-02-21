@@ -17,58 +17,92 @@ class _UserShellState extends State<UserShell> {
 
   static const _routes = ['/home', '/dashboard', '/wallet', '/profile'];
 
+  static const _navItems = [
+    _NavItem(Icons.grid_view_rounded, Icons.grid_view_rounded, 'PICK \'EM'),
+    _NavItem(Icons.dashboard_outlined, Icons.dashboard, 'DASHBOARD'),
+    _NavItem(
+        Icons.account_balance_wallet_outlined,
+        Icons.account_balance_wallet,
+        'WALLET'),
+    _NavItem(Icons.person_outline, Icons.person, 'ACCOUNT'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: widget.child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.card,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
+          color: AppColors.surface,
+          border: Border(
+            top: BorderSide(color: AppColors.cardBorder, width: 1),
+          ),
         ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() => _currentIndex = index);
-            context.go(_routes[index]);
-          },
-          backgroundColor: AppColors.card,
-          selectedItemColor: AppColors.accent,
-          unselectedItemColor: AppColors.grey,
-          type: BottomNavigationBarType.fixed,
-          selectedLabelStyle: GoogleFonts.poppins(
-              fontSize: 11, fontWeight: FontWeight.w600),
-          unselectedLabelStyle: GoogleFonts.poppins(fontSize: 11),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.sports_cricket),
-              activeIcon: Icon(Icons.sports_cricket),
-              label: 'Events',
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(_navItems.length, (index) {
+                final item = _navItems[index];
+                final isSelected = _currentIndex == index;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _currentIndex = index);
+                      context.go(_routes[index]);
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          height: 3,
+                          width: isSelected ? 24 : 0,
+                          margin: const EdgeInsets.only(bottom: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.accent,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        Icon(
+                          isSelected ? item.activeIcon : item.icon,
+                          size: 22,
+                          color: isSelected
+                              ? AppColors.accent
+                              : AppColors.grey,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          item.label,
+                          style: GoogleFonts.poppins(
+                            fontSize: 9,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.accent
+                                : AppColors.grey,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard),
-              label: 'Dashboard',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              activeIcon: Icon(Icons.account_balance_wallet),
-              label: 'Wallet',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _NavItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+
+  const _NavItem(this.icon, this.activeIcon, this.label);
 }

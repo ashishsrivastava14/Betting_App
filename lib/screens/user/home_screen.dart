@@ -19,11 +19,24 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  int _selectedFilter = 0;
+
+  final _filters = [
+    {'label': 'All', 'icon': Icons.grid_view_rounded},
+    {'label': 'Live', 'icon': Icons.sports_cricket},
+    {'label': 'Upcoming', 'icon': Icons.schedule},
+    {'label': 'Settled', 'icon': Icons.check_circle_outline},
+  ];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() => _selectedFilter = _tabController.index);
+      }
+    });
   }
 
   @override
@@ -41,168 +54,150 @@ class _HomeScreenState extends State<HomeScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // Header
+            // ── Top Bar ──
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
               child: Row(
                 children: [
-                  // Logo
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [AppColors.accent, AppColors.primary],
-                      ),
-                    ),
-                    child: const Icon(Icons.sports_cricket,
-                        color: Colors.white, size: 22),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'BetZone',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.accent,
-                        ),
-                      ),
-                      Text(
-                        'Hi, ${auth.currentUser?.name.split(' ').first ?? "User"} 🏏',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+                  // Wallet balance left
+                  _walletChip(
+                    Icons.account_balance_wallet_outlined,
+                    AppUtils.formatCurrency(
+                        auth.currentUser?.walletBalance ?? 0),
                   ),
                   const Spacer(),
-                  // Wallet balance chip
+                  // Logo center
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.surface,
+                      border: Border.all(
+                          color: AppColors.accent.withValues(alpha: 0.5),
+                          width: 2),
+                    ),
+                    child: const Icon(Icons.sports_cricket,
+                        color: AppColors.accent, size: 22),
+                  ),
+                  const Spacer(),
+                  // Notification bell right
+                  _walletChip(
+                    Icons.notifications_outlined,
+                    'BetZone',
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            // ── Category Filter Pills ──
+            SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _filters.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final isSelected = _selectedFilter == index;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedFilter = index);
+                      _tabController.animateTo(index);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.accent
+                            : AppColors.surface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.accent
+                              : AppColors.cardBorder,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _filters[index]['icon'] as IconData,
+                            size: 16,
+                            color: isSelected
+                                ? AppColors.background
+                                : AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _filters[index]['label'] as String,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? AppColors.background
+                                  : AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ── Section Header ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Text(
+                    'Contests for you',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.white,
+                    ),
+                  ),
+                  const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                        horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.accent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: AppColors.accent.withValues(alpha: 0.3)),
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.cardBorder),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.account_balance_wallet,
-                            color: AppColors.gold, size: 16),
+                        const Icon(Icons.sort,
+                            size: 14, color: AppColors.textSecondary),
                         const SizedBox(width: 4),
                         Text(
-                          AppUtils.formatCurrency(
-                              auth.currentUser?.walletBalance ?? 0),
+                          'SORT',
                           style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Sport banner
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.accent.withValues(alpha: 0.3),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                image: DecorationImage(
-                  image: const NetworkImage(
-                    'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400',
-                  ),
-                  fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(
-                    AppColors.background.withValues(alpha: 0.7),
-                    BlendMode.darken,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'CRICKET BETTING',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.white,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Bet on live matches & win big!',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: AppColors.white70,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.sports_cricket,
-                      size: 48, color: AppColors.accent),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Tabs
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                indicator: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                labelColor: AppColors.background,
-                unselectedLabelColor: AppColors.white70,
-                labelStyle: GoogleFonts.poppins(
-                    fontSize: 12, fontWeight: FontWeight.w600),
-                unselectedLabelStyle: GoogleFonts.poppins(fontSize: 12),
-                dividerColor: Colors.transparent,
-                indicatorSize: TabBarIndicatorSize.tab,
-                tabs: const [
-                  Tab(text: 'All'),
-                  Tab(text: 'Live'),
-                  Tab(text: 'Upcoming'),
-                  Tab(text: 'Settled'),
                 ],
               ),
             ),
 
             const SizedBox(height: 8),
 
-            // Event lists
+            // ── Event Lists ──
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -216,6 +211,32 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _walletChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: AppColors.accent, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.white,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -29,48 +29,64 @@ class _AdminShellState extends State<AdminShell> {
       body: widget.child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.card,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
+          color: AppColors.surface,
+          border: Border(top: BorderSide(color: AppColors.cardBorder)),
         ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() => _currentIndex = index);
-            context.go(_routes[index]);
-          },
-          backgroundColor: AppColors.card,
-          selectedItemColor: AppColors.accent,
-          unselectedItemColor: AppColors.grey,
-          type: BottomNavigationBarType.fixed,
-          selectedLabelStyle: GoogleFonts.poppins(
-              fontSize: 10, fontWeight: FontWeight.w600),
-          unselectedLabelStyle: GoogleFonts.poppins(fontSize: 10),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard),
-              label: 'Dashboard',
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(0, Icons.dashboard_rounded, 'DASHBOARD'),
+                _navItem(1, Icons.event_note_rounded, 'EVENTS'),
+                _navItem(2, Icons.people_rounded, 'USERS'),
+                _navItem(3, Icons.account_balance_wallet_rounded, 'WALLET'),
+                _navItem(4, Icons.bar_chart_rounded, 'REPORTS'),
+              ],
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.event),
-              label: 'Events',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(int index, IconData icon, String label) {
+    final isSelected = _currentIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() => _currentIndex = index);
+          context.go(_routes[index]);
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 3,
+              width: isSelected ? 24 : 0,
+              margin: const EdgeInsets.only(bottom: 6),
+              decoration: BoxDecoration(
+                color: AppColors.accent,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.people),
-              label: 'Users',
+            Icon(
+              icon,
+              size: 22,
+              color: isSelected ? AppColors.accent : AppColors.textMuted,
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet),
-              label: 'Wallet',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart),
-              label: 'Reports',
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 8,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppColors.accent : AppColors.textMuted,
+                letterSpacing: 0.5,
+              ),
             ),
           ],
         ),
