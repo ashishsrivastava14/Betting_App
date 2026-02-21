@@ -271,6 +271,34 @@ class _OtpScreenState extends State<OtpScreen> {
                           ),
                         ),
 
+                        const SizedBox(height: 32),
+
+                        // ── Powered by ──
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Powered by ',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: AppColors.textMuted.withValues(alpha: 0.7),
+                              ),
+                            ),
+                            Image.asset(
+                              'assets/images/QuickPrepAI_Logo.png',
+                              height: 18,
+                              errorBuilder: (_, __, ___) => Text(
+                                'QuickPrepAI',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textMuted.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
                         const SizedBox(height: 24),
                       ],
                     ),

@@ -204,6 +204,40 @@ class _SplashScreenState extends State<SplashScreen>
               ],
             ),
           ),
+
+          // ── Powered by footer ──
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 32,
+            child: FadeTransition(
+              opacity: _textOpacity,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Powered by ',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: AppColors.textMuted.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  Image.asset(
+                    'assets/images/QuickPrepAI_Logo.png',
+                    height: 18,
+                    errorBuilder: (_, __, ___) => Text(
+                      'QuickPrepAI',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textMuted.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
