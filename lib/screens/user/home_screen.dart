@@ -20,6 +20,14 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedFilter = 0;
+  String _sortBy = 'default';
+
+  static const _sortOptions = [
+    ('default',      'Default',            Icons.list_rounded),
+    ('deadline_asc', 'Deadline: Soonest',  Icons.timer_outlined),
+    ('deadline_desc','Deadline: Latest',   Icons.timer_off_outlined),
+    ('name_asc',     'Name: A → Z',        Icons.sort_by_alpha),
+  ];
 
   final _filters = [
     {'label': 'All', 'icon': Icons.grid_view_rounded},
@@ -247,29 +255,44 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.cardBorder),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.sort,
-                            size: 14, color: AppColors.textSecondary),
-                        const SizedBox(width: 4),
-                        Text(
-                          'SORT',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
-                            letterSpacing: 0.5,
-                          ),
+                  GestureDetector(
+                    onTap: _showSortSheet,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _sortBy != 'default'
+                            ? AppColors.accent.withValues(alpha: 0.15)
+                            : AppColors.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _sortBy != 'default'
+                              ? AppColors.accent
+                              : AppColors.cardBorder,
                         ),
-                      ],
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.sort,
+                              size: 14,
+                              color: _sortBy != 'default'
+                                  ? AppColors.accent
+                                  : AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            _sortBy != 'default' ? 'SORTED' : 'SORT',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: _sortBy != 'default'
+                                  ? AppColors.accent
+                                  : AppColors.textSecondary,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -283,10 +306,10 @@ class _HomeScreenState extends State<HomeScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildEventList(eventProvider.allEvents),
-                  _buildEventList(eventProvider.liveEvents),
-                  _buildEventList(eventProvider.upcomingEvents),
-                  _buildEventList(eventProvider.settledEvents),
+                  _buildEventList(_applySort(eventProvider.allEvents)),
+                  _buildEventList(_applySort(eventProvider.liveEvents)),
+                  _buildEventList(_applySort(eventProvider.upcomingEvents)),
+                  _buildEventList(_applySort(eventProvider.settledEvents)),
                 ],
               ),
             ),
@@ -294,6 +317,116 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
         ],
+      ),
+    );
+  }
+
+  List<EventModel> _applySort(List<EventModel> events) {
+    final list = List<EventModel>.from(events);
+    switch (_sortBy) {
+      case 'deadline_asc':
+        list.sort((a, b) => a.betCloseTime.compareTo(b.betCloseTime));
+      case 'deadline_desc':
+        list.sort((a, b) => b.betCloseTime.compareTo(a.betCloseTime));
+      case 'name_asc':
+        list.sort((a, b) => a.name.compareTo(b.name));
+    }
+    return list;
+  }
+
+  void _showSortSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 36, height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Sort by',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ..._sortOptions.map((opt) {
+                  final (value, label, icon) = opt;
+                  final isActive = _sortBy == value;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => _sortBy = value);
+                      setSheetState(() {});
+                      Navigator.pop(ctx);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? AppColors.accent.withValues(alpha: 0.12)
+                            : AppColors.surface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isActive
+                              ? AppColors.accent
+                              : AppColors.cardBorder,
+                          width: isActive ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(icon,
+                              size: 18,
+                              color: isActive
+                                  ? AppColors.accent
+                                  : AppColors.textSecondary),
+                          const SizedBox(width: 12),
+                          Text(
+                            label,
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: isActive
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: isActive
+                                  ? AppColors.accent
+                                  : AppColors.white,
+                            ),
+                          ),
+                          const Spacer(),
+                          if (isActive)
+                            const Icon(Icons.check_circle,
+                                size: 18, color: AppColors.accent),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
