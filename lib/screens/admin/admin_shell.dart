@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/powered_by.dart';
 
 class AdminShell extends StatefulWidget {
   final Widget child;
@@ -33,7 +34,10 @@ class _AdminShellState extends State<AdminShell> {
           border: Border(top: BorderSide(color: AppColors.cardBorder)),
         ),
         child: SafeArea(
-          child: Padding(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -45,6 +49,10 @@ class _AdminShellState extends State<AdminShell> {
                 _navItem(4, Icons.bar_chart_rounded, 'REPORTS'),
               ],
             ),
+          ),
+              const PoweredBy(),
+              const SizedBox(height: 4),
+            ],
           ),
         ),
       ),

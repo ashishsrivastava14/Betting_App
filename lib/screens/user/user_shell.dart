@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/powered_by.dart';
 
 class UserShell extends StatefulWidget {
   final Widget child;
@@ -39,7 +40,10 @@ class _UserShellState extends State<UserShell> {
           ),
         ),
         child: SafeArea(
-          child: Padding(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -92,6 +96,10 @@ class _UserShellState extends State<UserShell> {
                 );
               }),
             ),
+          ),
+              const PoweredBy(),
+              const SizedBox(height: 4),
+            ],
           ),
         ),
       ),
