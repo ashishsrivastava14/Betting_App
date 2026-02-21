@@ -23,103 +23,201 @@ class AdminDashboardScreen extends StatelessWidget {
     final totalUsers = mockUsers.where((u) => u.role == 'user').length;
     final totalBalance = walletProvider.getTotalWalletBalance();
     final totalBetsToday = betProvider.totalBetsToday;
-    final activeEvents = eventProvider.liveEvents.length + eventProvider.upcomingEvents.length;
+    final activeEvents =
+        eventProvider.liveEvents.length + eventProvider.upcomingEvents.length;
     final todaysRevenue = betProvider.todaysRevenue;
 
     return Scaffold(
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.accent,
-          backgroundColor: AppColors.card,
-          onRefresh: () async {
-            await Future.delayed(const Duration(seconds: 1));
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Admin Panel',
-                          style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.white),
-                        ),
-                        Text(
-                          'Hi, ${auth.currentUser?.name ?? "Admin"}',
-                          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () { auth.logout(); context.go('/login'); },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.red.withValues(alpha: 0.12),
-                          border: Border.all(color: AppColors.red.withValues(alpha: 0.3)),
-                        ),
-                        child: const Icon(Icons.logout, color: AppColors.red, size: 18),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/bg-images.png'),
+            fit: BoxFit.cover,
+            opacity: 0.15,
+          ),
+        ),
+        child: SafeArea(
+          child: RefreshIndicator(
+            color: AppColors.accent,
+            backgroundColor: AppColors.card,
+            onRefresh: () async {
+              await Future.delayed(const Duration(seconds: 1));
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Admin Panel',
+                            style: GoogleFonts.poppins(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.white,
+                            ),
+                          ),
+                          Text(
+                            'Hi, ${auth.currentUser?.name ?? "Admin"}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () {
+                          auth.logout();
+                          context.go('/login');
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.red.withValues(alpha: 0.12),
+                            border: Border.all(
+                              color: AppColors.red.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.logout,
+                            color: AppColors.red,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Stats grid
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 1.6,
-                  children: [
-                    _statCard(Icons.people, 'Total Users', '$totalUsers', AppColors.blue),
-                    _statCard(Icons.account_balance_wallet, 'Total Balance', AppUtils.formatCurrency(totalBalance), AppColors.green),
-                    _statCard(Icons.sports_cricket, 'Bets Today', '$totalBetsToday', AppColors.orange),
-                    _statCard(Icons.event, 'Active Events', '$activeEvents', AppColors.purple),
-                    _statCard(Icons.currency_rupee, "Today's Revenue", AppUtils.formatCurrency(todaysRevenue), AppColors.accent),
-                    _statCard(Icons.pending_actions, 'Pending Txns', '${walletProvider.pendingTransactions.length}', AppColors.red),
-                  ],
-                ),
+                  // Stats grid
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.6,
+                    children: [
+                      _statCard(
+                        Icons.people,
+                        'Total Users',
+                        '$totalUsers',
+                        AppColors.blue,
+                      ),
+                      _statCard(
+                        Icons.account_balance_wallet,
+                        'Total Balance',
+                        AppUtils.formatCurrency(totalBalance),
+                        AppColors.green,
+                      ),
+                      _statCard(
+                        Icons.sports_cricket,
+                        'Bets Today',
+                        '$totalBetsToday',
+                        AppColors.orange,
+                      ),
+                      _statCard(
+                        Icons.event,
+                        'Active Events',
+                        '$activeEvents',
+                        AppColors.purple,
+                      ),
+                      _statCard(
+                        Icons.currency_rupee,
+                        "Today's Revenue",
+                        AppUtils.formatCurrency(todaysRevenue),
+                        AppColors.accent,
+                      ),
+                      _statCard(
+                        Icons.pending_actions,
+                        'Pending Txns',
+                        '${walletProvider.pendingTransactions.length}',
+                        AppColors.red,
+                      ),
+                    ],
+                  ),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // Quick actions
-                _sectionHeader(Icons.bolt, 'Quick Actions'),
-                const SizedBox(height: 10),
+                  // Quick actions
+                  _sectionHeader(Icons.bolt, 'Quick Actions'),
+                  const SizedBox(height: 10),
 
-                Row(
-                  children: [
-                    _actionButton(Icons.add_box_rounded, 'Create\nEvent', () => context.push('/admin/events/create')),
-                    const SizedBox(width: 10),
-                    _actionButton(Icons.gavel_rounded, 'Declare\nResult', () => context.push('/admin/events/declare')),
-                    const SizedBox(width: 10),
-                    _actionButton(Icons.people_rounded, 'Manage\nUsers', () => context.go('/admin/users')),
-                  ],
-                ),
+                  Row(
+                    children: [
+                      _actionButton(
+                        Icons.add_box_rounded,
+                        'Create\nEvent',
+                        () => context.push('/admin/events/create'),
+                      ),
+                      const SizedBox(width: 10),
+                      _actionButton(
+                        Icons.gavel_rounded,
+                        'Declare\nResult',
+                        () => context.push('/admin/events/declare'),
+                      ),
+                      const SizedBox(width: 10),
+                      _actionButton(
+                        Icons.people_rounded,
+                        'Manage\nUsers',
+                        () => context.go('/admin/users'),
+                      ),
+                    ],
+                  ),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // Recent Activity
-                _sectionHeader(Icons.history, 'Recent Activity'),
-                const SizedBox(height: 10),
+                  // Recent Activity
+                  _sectionHeader(Icons.history, 'Recent Activity'),
+                  const SizedBox(height: 10),
 
-                _activityItem(Icons.person_add, 'New user registered', 'Rahul Sharma', '1h ago', AppColors.blue),
-                _activityItem(Icons.sports_cricket, 'Bet placed', 'Rs500 on RCB vs KKR', '2h ago', AppColors.orange),
-                _activityItem(Icons.emoji_events, 'Result declared', 'IND vs ENG - India won', '1d ago', AppColors.accent),
-                _activityItem(Icons.arrow_downward, 'Deposit approved', 'Rs5,000 for Priya Patel', '2d ago', AppColors.green),
-                _activityItem(Icons.arrow_upward, 'Withdrawal request', 'Rs2,000 from Rahul Sharma', '3h ago', AppColors.red),
-              ],
+                  _activityItem(
+                    Icons.person_add,
+                    'New user registered',
+                    'Rahul Sharma',
+                    '1h ago',
+                    AppColors.blue,
+                  ),
+                  _activityItem(
+                    Icons.sports_cricket,
+                    'Bet placed',
+                    'Rs500 on RCB vs KKR',
+                    '2h ago',
+                    AppColors.orange,
+                  ),
+                  _activityItem(
+                    Icons.emoji_events,
+                    'Result declared',
+                    'IND vs ENG - India won',
+                    '1d ago',
+                    AppColors.accent,
+                  ),
+                  _activityItem(
+                    Icons.arrow_downward,
+                    'Deposit approved',
+                    'Rs5,000 for Priya Patel',
+                    '2d ago',
+                    AppColors.green,
+                  ),
+                  _activityItem(
+                    Icons.arrow_upward,
+                    'Withdrawal request',
+                    'Rs2,000 from Rahul Sharma',
+                    '3h ago',
+                    AppColors.red,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -132,7 +230,14 @@ class AdminDashboardScreen extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: AppColors.accent),
         const SizedBox(width: 8),
-        Text(title, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.white)),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppColors.white,
+          ),
+        ),
       ],
     );
   }
@@ -160,11 +265,21 @@ class AdminDashboardScreen extends StatelessWidget {
           const Spacer(),
           Text(
             value,
-            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.white),
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.white,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          Text(label, style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textSecondary)),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              color: AppColors.textSecondary,
+            ),
+          ),
         ],
       ),
     );
@@ -187,7 +302,11 @@ class AdminDashboardScreen extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 label,
-                style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.accent),
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.accent,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -197,7 +316,13 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _activityItem(IconData icon, String title, String subtitle, String time, Color color) {
+  Widget _activityItem(
+    IconData icon,
+    String title,
+    String subtitle,
+    String time,
+    Color color,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -222,12 +347,31 @@ class AdminDashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.white)),
-                Text(subtitle, style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary)),
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
-          Text(time, style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted)),
+          Text(
+            time,
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              color: AppColors.textMuted,
+            ),
+          ),
         ],
       ),
     );
