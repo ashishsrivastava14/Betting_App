@@ -1,0 +1,37 @@
+import '../models/user_model.dart';
+
+final List<UserModel> mockUsers = [
+  UserModel(
+    id: 'USR001',
+    name: 'Rahul Sharma',
+    phone: '9876543210',
+    dob: '1995-06-15',
+    location: 'Mumbai, Maharashtra',
+    walletBalance: 5000.0,
+    kycVerified: true,
+    isBlocked: false,
+    role: 'user',
+  ),
+  UserModel(
+    id: 'USR002',
+    name: 'Priya Patel',
+    phone: '9123456789',
+    dob: '1998-03-22',
+    location: 'Ahmedabad, Gujarat',
+    walletBalance: 12500.0,
+    kycVerified: true,
+    isBlocked: false,
+    role: 'user',
+  ),
+  UserModel(
+    id: 'ADM001',
+    name: 'Admin BetZone',
+    phone: '9999999999',
+    dob: '1990-01-01',
+    location: 'Delhi, India',
+    walletBalance: 100000.0,
+    kycVerified: true,
+    isBlocked: false,
+    role: 'admin',
+  ),
+];
