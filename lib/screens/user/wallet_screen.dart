@@ -2,14 +2,59 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../models/transaction_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_utils.dart';
 import '../../widgets/status_badge.dart';
 
-class WalletScreen extends StatelessWidget {
+class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
+
+  @override
+  State<WalletScreen> createState() => _WalletScreenState();
+}
+
+class _WalletScreenState extends State<WalletScreen> {
+  String _activeFilter = 'all';
+
+  static const _filters = [
+    ('all',        'All',         Icons.list_rounded),
+    ('deposit',    'Deposits',    Icons.arrow_downward_rounded),
+    ('withdrawal', 'Withdrawals', Icons.arrow_upward_rounded),
+    ('bet',        'Bets',        Icons.sports_cricket),
+  ];
+
+  List<TransactionModel> _applyFilter(List<TransactionModel> txns) {
+    switch (_activeFilter) {
+      case 'deposit':
+        return txns.where((t) => t.type == 'deposit').toList();
+      case 'withdrawal':
+        return txns.where((t) => t.type == 'withdrawal').toList();
+      case 'bet':
+        return txns
+            .where((t) => t.type == 'bet_debit' || t.type == 'win_credit')
+            .toList();
+      default:
+        return txns;
+    }
+  }
+
+  (IconData, Color, String) _txnMeta(String type) {
+    switch (type) {
+      case 'deposit':
+        return (Icons.arrow_downward_rounded, AppColors.green, 'Deposit');
+      case 'withdrawal':
+        return (Icons.arrow_upward_rounded, AppColors.red, 'Withdrawal');
+      case 'bet_debit':
+        return (Icons.sports_cricket, AppColors.orange, 'Bet Placed');
+      case 'win_credit':
+        return (Icons.emoji_events, AppColors.gold, 'Win Credit');
+      default:
+        return (Icons.swap_horiz, AppColors.grey, 'Transaction');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +64,8 @@ class WalletScreen extends StatelessWidget {
 
     if (user == null) return const SizedBox();
 
-    final transactions = walletProvider.getTransactionsForUser(user.id);
+    final allTxns = walletProvider.getTransactionsForUser(user.id);
+    final filteredTxns = _applyFilter(allTxns);
 
     return Scaffold(
       body: SafeArea(
@@ -35,6 +81,7 @@ class WalletScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ── Header ──
                 Row(
                   children: [
                     const Icon(Icons.account_balance_wallet_rounded,
@@ -51,13 +98,16 @@ class WalletScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
+
+                // ── Balance card ──
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: AppColors.card,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: AppColors.accent.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     children: [
@@ -105,7 +155,9 @@ class WalletScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
+
+                // ── Transaction History header ──
                 Row(
                   children: [
                     const Icon(Icons.receipt_long,
@@ -119,13 +171,80 @@ class WalletScreen extends StatelessWidget {
                         color: AppColors.white,
                       ),
                     ),
+                    const Spacer(),
+                    Text(
+                      '${filteredTxns.length} records',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                if (transactions.isEmpty)
+                const SizedBox(height: 12),
+
+                // ── Filter chips ──
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _filters.map((f) {
+                      final (value, label, icon) = f;
+                      final isActive = _activeFilter == value;
+                      return GestureDetector(
+                        onTap: () =>
+                            setState(() => _activeFilter = value),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? AppColors.accent.withValues(alpha: 0.15)
+                                : AppColors.card,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isActive
+                                  ? AppColors.accent
+                                  : AppColors.cardBorder,
+                              width: isActive ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(icon,
+                                  size: 13,
+                                  color: isActive
+                                      ? AppColors.accent
+                                      : AppColors.textSecondary),
+                              const SizedBox(width: 5),
+                              Text(
+                                label,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: isActive
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  color: isActive
+                                      ? AppColors.accent
+                                      : AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // ── Transaction list ──
+                if (filteredTxns.isEmpty)
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.symmetric(vertical: 40),
                     decoration: BoxDecoration(
                       color: AppColors.card,
                       borderRadius: BorderRadius.circular(12),
@@ -133,17 +252,24 @@ class WalletScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        Icon(Icons.receipt_long, size: 40, color: AppColors.textMuted),
+                        Icon(Icons.receipt_long,
+                            size: 40, color: AppColors.textMuted),
                         const SizedBox(height: 8),
                         Text(
-                          'No transactions yet',
-                          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
+                          allTxns.isEmpty
+                              ? 'No transactions yet'
+                              : 'No ${_filters.firstWhere((f) => f.$1 == _activeFilter).$2.toLowerCase()} found',
+                          style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                   )
                 else
-                  ...transactions.map((txn) => _transactionTile(txn)),
+                  ...filteredTxns.map((txn) => _transactionTile(txn)),
+
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -152,7 +278,8 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
-  Widget _actionBtn(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _actionBtn(
+      IconData icon, String label, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -167,38 +294,21 @@ class WalletScreen extends StatelessWidget {
           children: [
             Icon(icon, size: 16, color: color),
             const SizedBox(width: 6),
-            Text(label, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+            Text(label,
+                style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: color)),
           ],
         ),
       ),
     );
   }
 
-  Widget _transactionTile(dynamic txn) {
-    IconData icon;
-    Color iconColor;
-    switch (txn.type) {
-      case 'deposit':
-        icon = Icons.arrow_downward;
-        iconColor = AppColors.green;
-        break;
-      case 'withdrawal':
-        icon = Icons.arrow_upward;
-        iconColor = AppColors.red;
-        break;
-      case 'bet_debit':
-        icon = Icons.sports_cricket;
-        iconColor = AppColors.orange;
-        break;
-      case 'win_credit':
-        icon = Icons.emoji_events;
-        iconColor = AppColors.gold;
-        break;
-      default:
-        icon = Icons.swap_horiz;
-        iconColor = AppColors.grey;
-    }
+  Widget _transactionTile(TransactionModel txn) {
+    final (icon, iconColor, label) = _txnMeta(txn.type);
     final isCredit = txn.type == 'deposit' || txn.type == 'win_credit';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
@@ -210,8 +320,8 @@ class WalletScreen extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: iconColor.withValues(alpha: 0.12),
@@ -224,31 +334,45 @@ class WalletScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  txn.type.replaceAll('_', ' ').toUpperCase(),
-                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.white),
+                  label,
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white),
                 ),
-                Text(
-                  txn.notes ?? '',
-                  style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                if (txn.notes.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    txn.notes,
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: AppColors.textSecondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: 2),
                 Text(
                   AppUtils.formatDateShort(txn.createdAt),
-                  style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted),
+                  style: GoogleFonts.poppins(
+                      fontSize: 10, color: AppColors.textMuted),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 '${isCredit ? '+' : '-'}${AppUtils.formatCurrency(txn.amount)}',
-                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: isCredit ? AppColors.green : AppColors.red),
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: isCredit ? AppColors.green : AppColors.red,
+                ),
               ),
               const SizedBox(height: 4),
-              StatusBadge(status: txn.status, fontSize: 9),
+              StatusBadge(status: txn.status, fontSize: 9.0),
             ],
           ),
         ],
