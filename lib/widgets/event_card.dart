@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../models/event_model.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_utils.dart';
 import 'countdown_timer.dart';
 import 'status_badge.dart';
 
@@ -228,6 +229,7 @@ class EventCard extends StatelessWidget {
   }
 
   Widget _buildTeamChip(String name, int index) {
+    final logoAsset = AppUtils.getTeamLogoAsset(name);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -240,15 +242,34 @@ class EventCard extends StatelessWidget {
             border: Border.all(
                 color: _getTeamColor(index).withValues(alpha: 0.5)),
           ),
-          child: Center(
-            child: Text(
-              _getTeamInitials(name),
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: _getTeamColor(index),
-              ),
-            ),
+          child: ClipOval(
+            child: logoAsset != null
+                ? Image.asset(
+                    logoAsset,
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Center(
+                      child: Text(
+                        _getTeamInitials(name),
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: _getTeamColor(index),
+                        ),
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Text(
+                      _getTeamInitials(name),
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: _getTeamColor(index),
+                      ),
+                    ),
+                  ),
           ),
         ),
         const SizedBox(width: 8),

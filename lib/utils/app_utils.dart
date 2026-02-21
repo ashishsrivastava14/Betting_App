@@ -59,4 +59,24 @@ class AppUtils {
   static String generateId(String prefix) {
     return '$prefix${DateTime.now().millisecondsSinceEpoch}';
   }
+
+  /// Local team logo asset paths
+  static const Map<String, String> teamLogoAssets = {
+    'India': 'assets/images/teams/india.png',
+    'Australia': 'assets/images/teams/australia.png',
+    'England': 'assets/images/teams/england.png',
+    'CSK': 'assets/images/teams/csk.png',
+    'MI': 'assets/images/teams/mi.png',
+    'RCB': 'assets/images/teams/rcb.png',
+    'KKR': 'assets/images/teams/kkr.png',
+    'DC': 'assets/images/teams/dc.png',
+    'RR': 'assets/images/teams/rr.png',
+    'SRH': 'assets/images/teams/srh.png',
+    'PBKS': 'assets/images/teams/pbks.png',
+  };
+
+  /// Get local team logo asset path, returns null if not found
+  static String? getTeamLogoAsset(String teamName) {
+    return teamLogoAssets[teamName];
+  }
 }

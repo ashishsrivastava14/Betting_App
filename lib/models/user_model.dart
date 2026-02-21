@@ -4,6 +4,7 @@ class UserModel {
   final String phone;
   final String dob;
   final String location;
+  final String? imageUrl;
   double walletBalance;
   bool kycVerified;
   bool isBlocked;
@@ -15,6 +16,7 @@ class UserModel {
     required this.phone,
     required this.dob,
     required this.location,
+    this.imageUrl,
     this.walletBalance = 0.0,
     this.kycVerified = false,
     this.isBlocked = false,
@@ -27,6 +29,7 @@ class UserModel {
     String? phone,
     String? dob,
     String? location,
+    String? imageUrl,
     double? walletBalance,
     bool? kycVerified,
     bool? isBlocked,
@@ -38,6 +41,7 @@ class UserModel {
       phone: phone ?? this.phone,
       dob: dob ?? this.dob,
       location: location ?? this.location,
+      imageUrl: imageUrl ?? this.imageUrl,
       walletBalance: walletBalance ?? this.walletBalance,
       kycVerified: kycVerified ?? this.kycVerified,
       isBlocked: isBlocked ?? this.isBlocked,

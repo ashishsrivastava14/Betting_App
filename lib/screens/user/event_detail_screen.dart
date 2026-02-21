@@ -643,6 +643,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   Widget _teamAvatar(String name, int index) {
+    final logoAsset = AppUtils.getTeamLogoAsset(name);
     return Column(
       children: [
         Container(
@@ -655,15 +656,34 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 color: _getTeamColor(index).withValues(alpha: 0.5),
                 width: 2),
           ),
-          child: Center(
-            child: Text(
-              _getTeamInitials(name),
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: _getTeamColor(index),
-              ),
-            ),
+          child: ClipOval(
+            child: logoAsset != null
+                ? Image.asset(
+                    logoAsset,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Center(
+                      child: Text(
+                        _getTeamInitials(name),
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: _getTeamColor(index),
+                        ),
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Text(
+                      _getTeamInitials(name),
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: _getTeamColor(index),
+                      ),
+                    ),
+                  ),
           ),
         ),
         const SizedBox(height: 6),

@@ -82,9 +82,22 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                 color: AppColors.accent.withValues(alpha: 0.12),
                                 border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
                               ),
-                              child: Center(
-                                child: Text(user.name[0].toUpperCase(),
-                                    style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                              child: ClipOval(
+                                child: user.imageUrl != null
+                                    ? Image.asset(
+                                        user.imageUrl!,
+                                        width: 44,
+                                        height: 44,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, _, _) => Center(
+                                          child: Text(user.name[0].toUpperCase(),
+                                              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                                        ),
+                                      )
+                                    : Center(
+                                        child: Text(user.name[0].toUpperCase(),
+                                            style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                                      ),
                               ),
                             ),
                             const SizedBox(width: 12),
