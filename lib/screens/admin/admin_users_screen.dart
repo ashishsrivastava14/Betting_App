@@ -17,10 +17,15 @@ class AdminUsersScreen extends StatefulWidget {
 class _AdminUsersScreenState extends State<AdminUsersScreen> {
   String _searchQuery = '';
   String _filterStatus = 'All'; // All | Active | Blocked | Unverified
+  String _roleFilter = 'All'; // All | Users | Admins
 
   List<UserModel> get _filteredUsers {
     return mockUsers
-        .where((u) => u.role == 'user')
+        .where((u) {
+          if (_roleFilter == 'Users') return u.role == 'user';
+          if (_roleFilter == 'Admins') return u.role == 'admin';
+          return true;
+        })
         .where(
           (u) =>
               u.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -97,13 +102,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   }
 
   // â”€â”€ Add / Edit user sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  void _openUserForm({UserModel? existing}) {
+  void _openUserForm({UserModel? existing, String role = 'user'}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _UserFormSheet(
         existing: existing,
+        initialRole: existing?.role ?? role,
         onSave: (updated) {
           setState(() {
             if (existing == null) {
@@ -132,20 +138,33 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   @override
   Widget build(BuildContext context) {
     final users = _filteredUsers;
-    final allUsers = mockUsers.where((u) => u.role == 'user').toList();
+    final allUsers = mockUsers.where((u) {
+      if (_roleFilter == 'Users') return u.role == 'user';
+      if (_roleFilter == 'Admins') return u.role == 'admin';
+      return true;
+    }).toList();
     final activeCount = allUsers.where((u) => !u.isBlocked).length;
     final blockedCount = allUsers.where((u) => u.isBlocked).length;
     final unverifiedCount = allUsers.where((u) => !u.kycVerified).length;
+    final adminCount = mockUsers.where((u) => u.role == 'admin').length;
+    final regularUserCount = mockUsers.where((u) => u.role == 'user').length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openUserForm(),
-        backgroundColor: AppColors.accent,
+        onPressed: () => _openUserForm(
+          role: _roleFilter == 'Admins' ? 'admin' : 'user',
+        ),
+        backgroundColor:
+            _roleFilter == 'Admins' ? AppColors.purple : AppColors.accent,
         foregroundColor: AppColors.background,
-        icon: const Icon(Icons.person_add_rounded),
+        icon: Icon(
+          _roleFilter == 'Admins'
+              ? Icons.admin_panel_settings_rounded
+              : Icons.person_add_rounded,
+        ),
         label: Text(
-          'Add User',
+          _roleFilter == 'Admins' ? 'Add Admin' : 'Add User',
           style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
         ),
         elevation: 4,
@@ -205,7 +224,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                           ),
                         ),
                         child: Text(
-                          '${allUsers.length} Total',
+                          '${allUsers.length} ${_roleFilter == 'Admins' ? 'Admins' : _roleFilter == 'Users' ? 'Users' : 'Total'}',
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -221,21 +240,21 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   Row(
                     children: [
                       _statChip(
-                        Icons.check_circle_rounded,
-                        '$activeCount Active',
-                        AppColors.green,
+                        Icons.person_rounded,
+                        '$regularUserCount Users',
+                        AppColors.blue,
+                      ),
+                      const SizedBox(width: 8),
+                      _statChip(
+                        Icons.admin_panel_settings_rounded,
+                        '$adminCount Admins',
+                        AppColors.purple,
                       ),
                       const SizedBox(width: 8),
                       _statChip(
                         Icons.block_rounded,
                         '$blockedCount Blocked',
                         AppColors.red,
-                      ),
-                      const SizedBox(width: 8),
-                      _statChip(
-                        Icons.pending_rounded,
-                        '$unverifiedCount Unverified',
-                        AppColors.orange,
                       ),
                     ],
                   ),
@@ -249,6 +268,19 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: Column(
                 children: [
+                  // Role filter
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 32,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        'All',
+                        'Users',
+                        'Admins',
+                      ].map((r) => _roleFilterChip(r)).toList(),
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   TextFormField(
                     style: GoogleFonts.poppins(
@@ -370,6 +402,56 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     );
   }
 
+  Widget _roleFilterChip(String label) {
+    final isSelected = _roleFilter == label;
+    final color = label == 'Admins'
+        ? AppColors.purple
+        : label == 'Users'
+            ? AppColors.blue
+            : AppColors.accent;
+    return GestureDetector(
+      onTap: () => setState(() {
+        _roleFilter = label;
+        _filterStatus = 'All';
+      }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? color : AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? color : AppColors.cardBorder,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              label == 'Admins'
+                  ? Icons.admin_panel_settings_rounded
+                  : label == 'Users'
+                      ? Icons.person_rounded
+                      : Icons.people_rounded,
+              size: 12,
+              color: isSelected ? AppColors.background : color,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? AppColors.background : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _filterChip(String label) {
     final isSelected = _filterStatus == label;
     return GestureDetector(
@@ -450,12 +532,16 @@ class _UserCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: user.role == 'admin'
+              ? AppColors.purple.withValues(alpha: 0.05)
+              : AppColors.card,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: user.isBlocked
-                ? AppColors.red.withValues(alpha: 0.25)
-                : AppColors.cardBorder,
+            color: user.role == 'admin'
+                ? AppColors.purple.withValues(alpha: 0.35)
+                : user.isBlocked
+                    ? AppColors.red.withValues(alpha: 0.25)
+                    : AppColors.cardBorder,
           ),
         ),
         child: Material(
@@ -541,12 +627,33 @@ class _UserCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (user.kycVerified)
+                            if (user.role == 'admin') ...[  
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: AppColors.purple.withValues(alpha: 0.18),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                      color: AppColors.purple.withValues(alpha: 0.4)),
+                                ),
+                                child: Text(
+                                  'ADMIN',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.purple,
+                                  ),
+                                ),
+                              ),
+                            ] else if (user.kycVerified) ...[  
                               const Icon(
                                 Icons.verified_rounded,
                                 color: AppColors.blue,
                                 size: 15,
                               ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 1),
@@ -588,15 +695,17 @@ class _UserCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        AppUtils.formatCurrency(user.walletBalance),
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.accent,
+                      if (user.role != 'admin') ...[  
+                        Text(
+                          AppUtils.formatCurrency(user.walletBalance),
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.accent,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
+                        const SizedBox(height: 4),
+                      ],
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -694,9 +803,14 @@ class _UserCard extends StatelessWidget {
 // â”€â”€ Add / Edit User Form Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _UserFormSheet extends StatefulWidget {
   final UserModel? existing;
+  final String initialRole;
   final ValueChanged<UserModel> onSave;
 
-  const _UserFormSheet({this.existing, required this.onSave});
+  const _UserFormSheet({
+    this.existing,
+    this.initialRole = 'user',
+    required this.onSave,
+  });
 
   @override
   State<_UserFormSheet> createState() => _UserFormSheetState();
@@ -712,6 +826,7 @@ class _UserFormSheetState extends State<_UserFormSheet> {
   late final TextEditingController _balanceCtrl;
   late bool _kycVerified;
   late bool _isBlocked;
+  late String _role;
 
   bool get _isEditing => widget.existing != null;
 
@@ -728,6 +843,7 @@ class _UserFormSheetState extends State<_UserFormSheet> {
     );
     _kycVerified = u?.kycVerified ?? false;
     _isBlocked = u?.isBlocked ?? false;
+    _role = widget.initialRole;
   }
 
   @override
@@ -744,10 +860,13 @@ class _UserFormSheetState extends State<_UserFormSheet> {
     if (!_formKey.currentState!.validate()) return;
     final existing = widget.existing;
 
-    // Generate a new ID for new users
+    // Generate a new ID for new users or admins
     String newId;
     if (_isEditing) {
       newId = existing!.id;
+    } else if (_role == 'admin') {
+      final adminCount = mockUsers.where((u) => u.role == 'admin').length;
+      newId = 'ADM${(adminCount + 1).toString().padLeft(3, '0')}';
     } else {
       final userCount = mockUsers.where((u) => u.role == 'user').length;
       newId = 'USR${(userCount + 1).toString().padLeft(3, '0')}';
@@ -763,7 +882,7 @@ class _UserFormSheetState extends State<_UserFormSheet> {
       walletBalance: double.tryParse(_balanceCtrl.text.trim()) ?? 0,
       kycVerified: _kycVerified,
       isBlocked: _isBlocked,
-      role: 'user',
+      role: _role,
     );
 
     Navigator.pop(context);
@@ -803,13 +922,20 @@ class _UserFormSheetState extends State<_UserFormSheet> {
             Row(
               children: [
                 Icon(
-                  _isEditing ? Icons.edit_rounded : Icons.person_add_rounded,
-                  color: AppColors.accent,
+                  _role == 'admin'
+                      ? Icons.admin_panel_settings_rounded
+                      : _isEditing
+                          ? Icons.edit_rounded
+                          : Icons.person_add_rounded,
+                  color:
+                      _role == 'admin' ? AppColors.purple : AppColors.accent,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _isEditing ? 'Edit User' : 'Add New User',
+                  _isEditing
+                      ? (_role == 'admin' ? 'Edit Admin' : 'Edit User')
+                      : (_role == 'admin' ? 'Add New Admin' : 'Add New User'),
                   style: GoogleFonts.poppins(
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
@@ -818,7 +944,27 @@ class _UserFormSheetState extends State<_UserFormSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 14),
+
+            // Role selector
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: Row(
+                children: [
+                  _roleOption(
+                      'user', 'Regular User', Icons.person_rounded, AppColors.blue),
+                  const SizedBox(width: 4),
+                  _roleOption(
+                      'admin', 'Admin', Icons.admin_panel_settings_rounded, AppColors.purple),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
 
             // Fields
             Row(
@@ -853,41 +999,52 @@ class _UserFormSheetState extends State<_UserFormSheet> {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _field(
-                    _dobCtrl,
-                    'DOB (YYYY-MM-DD)',
-                    Icons.cake_rounded,
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Required' : null,
+            if (_role != 'admin')
+              Row(
+                children: [
+                  Expanded(
+                    child: _field(
+                      _dobCtrl,
+                      'DOB (YYYY-MM-DD)',
+                      Icons.cake_rounded,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _field(
-                    _locationCtrl,
-                    'Location',
-                    Icons.location_on_rounded,
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Required' : null,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _field(
+                      _locationCtrl,
+                      'Location',
+                      Icons.location_on_rounded,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _field(
-              _balanceCtrl,
-              'Wallet Balance (â‚¹)',
-              Icons.account_balance_wallet_rounded,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+                ],
+              )
+            else
+              _field(
+                _locationCtrl,
+                'Location',
+                Icons.location_on_rounded,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-              ],
-            ),
+            if (_role != 'admin') ...[  
+              const SizedBox(height: 12),
+              _field(
+                _balanceCtrl,
+                'Wallet Balance (₹)',
+                Icons.account_balance_wallet_rounded,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                ],
+              ),
+            ],
             const SizedBox(height: 14),
 
             // Toggles
@@ -900,14 +1057,16 @@ class _UserFormSheetState extends State<_UserFormSheet> {
               ),
               child: Column(
                 children: [
-                  _toggle(
-                    Icons.verified_rounded,
-                    'KYC Verified',
-                    AppColors.blue,
-                    _kycVerified,
-                    (v) => setState(() => _kycVerified = v),
-                  ),
-                  const Divider(color: AppColors.cardBorder, height: 1),
+                  if (_role != 'admin') ...[  
+                    _toggle(
+                      Icons.verified_rounded,
+                      'KYC Verified',
+                      AppColors.blue,
+                      _kycVerified,
+                      (v) => setState(() => _kycVerified = v),
+                    ),
+                    const Divider(color: AppColors.cardBorder, height: 1),
+                  ],
                   _toggle(
                     Icons.block_rounded,
                     'Blocked',
@@ -935,6 +1094,44 @@ class _UserFormSheetState extends State<_UserFormSheet> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _roleOption(
+      String value, String label, IconData icon, Color color) {
+    final selected = _role == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _role = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? color.withValues(alpha: 0.15) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: selected ? color : Colors.transparent,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16,
+                  color: selected ? color : AppColors.textMuted),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight:
+                      selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? color : AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

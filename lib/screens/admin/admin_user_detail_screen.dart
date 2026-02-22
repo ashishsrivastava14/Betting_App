@@ -79,17 +79,29 @@ class AdminUserDetailScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Text(user.name, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.white)),
-                    if (user.kycVerified) ...[const SizedBox(width: 6), const Icon(Icons.verified, color: AppColors.green, size: 18)],
+                    if (user.role != 'admin' && user.kycVerified) ...[const SizedBox(width: 6), const Icon(Icons.verified, color: AppColors.green, size: 18)],
+                    if (user.role == 'admin') ...[const SizedBox(width: 8), Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.purple.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.purple.withValues(alpha: 0.4)),
+                      ),
+                      child: Text('ADMIN', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.purple)),
+                    )],
                   ]),
                   Text('+91 ${user.phone}', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      _miniStat('Balance', AppUtils.formatCurrency(user.walletBalance), AppColors.accent),
-                      _miniStat('Bets', '${userBets.length}', AppColors.blue),
-                      _miniStat('Won', '${userBets.where((b) => b.status == 'won').length}', AppColors.green),
-                    ],
-                  ),
+                  if (user.role != 'admin') ...[  
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        _miniStat('Balance', AppUtils.formatCurrency(user.walletBalance), AppColors.accent),
+                        _miniStat('Bets', '${userBets.length}', AppColors.blue),
+                        _miniStat('Won', '${userBets.where((b) => b.status == 'won').length}', AppColors.green),
+                      ],
+                    ),
+                  ] else
+                    const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -99,13 +111,14 @@ class AdminUserDetailScreen extends StatelessWidget {
             _buildInfoCard(user),
             const SizedBox(height: 20),
 
-            // Bets Section
-            _sectionHeader(Icons.receipt_long_rounded, 'Betting History'),
-            const SizedBox(height: 10),
-            if (userBets.isEmpty)
-              _emptyCard('No bets placed yet')
-            else
-              ...userBets.map((bet) => Container(
+            // Bets Section — only for regular users
+            if (user.role != 'admin') ...[  
+              _sectionHeader(Icons.receipt_long_rounded, 'Betting History'),
+              const SizedBox(height: 10),
+              if (userBets.isEmpty)
+                _emptyCard('No bets placed yet')
+              else
+                ...userBets.map((bet) => Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -138,59 +151,60 @@ class AdminUserDetailScreen extends StatelessWidget {
                       ],
                     ),
                   )),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Transactions Section
-            _sectionHeader(Icons.swap_horiz_rounded, 'Transactions'),
-            const SizedBox(height: 10),
-            if (userTxns.isEmpty)
-              _emptyCard('No transactions')
-            else
-              ...userTxns.map((txn) {
-                final isCredit = txn.type == 'deposit' || txn.type == 'win_credit';
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.cardBorder),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: (isCredit ? AppColors.green : AppColors.red).withValues(alpha: 0.12),
+              // Transactions Section
+              _sectionHeader(Icons.swap_horiz_rounded, 'Transactions'),
+              const SizedBox(height: 10),
+              if (userTxns.isEmpty)
+                _emptyCard('No transactions')
+              else
+                ...userTxns.map((txn) {
+                  final isCredit = txn.type == 'deposit' || txn.type == 'win_credit';
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: (isCredit ? AppColors.green : AppColors.red).withValues(alpha: 0.12),
+                          ),
+                          child: Icon(
+                            isCredit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                            color: isCredit ? AppColors.green : AppColors.red,
+                            size: 18,
+                          ),
                         ),
-                        child: Icon(
-                          isCredit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
-                          color: isCredit ? AppColors.green : AppColors.red,
-                          size: 18,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(txn.type.replaceAll('_', ' ').toUpperCase(),
+                                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.white)),
+                              Text(AppUtils.formatDate(txn.createdAt),
+                                  style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textSecondary)),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(txn.type.replaceAll('_', ' ').toUpperCase(),
-                                style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.white)),
-                            Text(AppUtils.formatDate(txn.createdAt),
-                                style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textSecondary)),
-                          ],
+                        Text(
+                          '${isCredit ? '+' : '-'}${AppUtils.formatCurrency(txn.amount)}',
+                          style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: isCredit ? AppColors.green : AppColors.red),
                         ),
-                      ),
-                      Text(
-                        '${isCredit ? '+' : '-'}${AppUtils.formatCurrency(txn.amount)}',
-                        style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: isCredit ? AppColors.green : AppColors.red),
-                      ),
-                    ],
-                  ),
-                );
-              }),
+                      ],
+                    ),
+                  );
+                }),
+            ],
           ],
         ),
       ),
@@ -217,8 +231,10 @@ class AdminUserDetailScreen extends StatelessWidget {
       child: Column(
         children: [
           _infoRow(Icons.person_outline, 'Role', user.role.toUpperCase()),
-          const Divider(color: AppColors.cardBorder, height: 16),
-          _infoRow(Icons.shield_outlined, 'KYC', user.kycVerified ? 'Verified' : 'Pending'),
+          if (user.role != 'admin') ...[  
+            const Divider(color: AppColors.cardBorder, height: 16),
+            _infoRow(Icons.shield_outlined, 'KYC', user.kycVerified ? 'Verified' : 'Pending'),
+          ],
           const Divider(color: AppColors.cardBorder, height: 16),
           _infoRow(Icons.block, 'Status', user.isBlocked ? 'Blocked' : 'Active'),
           const Divider(color: AppColors.cardBorder, height: 16),
