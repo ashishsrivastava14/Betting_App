@@ -222,7 +222,8 @@ class AdminUserDetailScreen extends StatelessWidget {
           const Divider(color: AppColors.cardBorder, height: 16),
           _infoRow(Icons.block, 'Status', user.isBlocked ? 'Blocked' : 'Active'),
           const Divider(color: AppColors.cardBorder, height: 16),
-          _infoRow(Icons.calendar_today_outlined, 'Joined', AppUtils.formatDate(user.createdAt)),
+          _infoRow(Icons.calendar_today_outlined, 'Joined',
+              AppUtils.formatDate(DateTime.parse(user.createdAt))),
         ],
       ),
     );

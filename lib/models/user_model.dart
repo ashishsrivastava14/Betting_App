@@ -9,6 +9,7 @@ class UserModel {
   bool kycVerified;
   bool isBlocked;
   final String role; // 'user' | 'admin'
+  final String createdAt; // ISO date string YYYY-MM-DD
 
   UserModel({
     required this.id,
@@ -21,7 +22,8 @@ class UserModel {
     this.kycVerified = false,
     this.isBlocked = false,
     this.role = 'user',
-  });
+    String? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now().toIso8601String().substring(0, 10);
 
   UserModel copyWith({
     String? id,
@@ -34,6 +36,7 @@ class UserModel {
     bool? kycVerified,
     bool? isBlocked,
     String? role,
+    String? createdAt,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -46,6 +49,7 @@ class UserModel {
       kycVerified: kycVerified ?? this.kycVerified,
       isBlocked: isBlocked ?? this.isBlocked,
       role: role ?? this.role,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }
