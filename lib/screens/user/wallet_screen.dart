@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:excel/excel.dart' as xl;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -464,6 +466,10 @@ class _WalletScreenState extends State<WalletScreen> {
     final (icon, iconColor, label) = _txnMeta(txn.type);
     final isCredit = txn.type == 'deposit' || txn.type == 'win_credit';
 
+    // Screenshot available?
+    final hasDepositScreenshot = txn.depositScreenshotPath != null;
+    final hasWithdrawalScreenshot = txn.withdrawalScreenshotPath != null;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
@@ -472,65 +478,205 @@ class _WalletScreenState extends State<WalletScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.cardBorder),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: iconColor.withValues(alpha: 0.12),
-            ),
-            child: Icon(icon, color: iconColor, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.white),
-                ),
-                if (txn.notes.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    txn.notes,
-                    style: GoogleFonts.poppins(
-                        fontSize: 11, color: AppColors.textSecondary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-                const SizedBox(height: 2),
-                Text(
-                  AppUtils.formatDateShort(txn.createdAt),
-                  style: GoogleFonts.poppins(
-                      fontSize: 10, color: AppColors.textMuted),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Row(
             children: [
-              Text(
-                '${isCredit ? '+' : '-'}${AppUtils.formatCurrency(txn.amount)}',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: isCredit ? AppColors.green : AppColors.red,
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: iconColor.withValues(alpha: 0.12),
+                ),
+                child: Icon(icon, color: iconColor, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.white),
+                    ),
+                    if (txn.paymentAccountName != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        txn.paymentAccountName!,
+                        style: GoogleFonts.poppins(
+                            fontSize: 11, color: AppColors.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ] else if (txn.notes.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        txn.notes,
+                        style: GoogleFonts.poppins(
+                            fontSize: 11, color: AppColors.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const SizedBox(height: 2),
+                    Text(
+                      AppUtils.formatDateShort(txn.createdAt),
+                      style: GoogleFonts.poppins(
+                          fontSize: 10, color: AppColors.textMuted),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              StatusBadge(status: txn.status, fontSize: 9.0),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${isCredit ? '+' : '-'}${AppUtils.formatCurrency(txn.amount)}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isCredit ? AppColors.green : AppColors.red,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  StatusBadge(status: txn.status, fontSize: 9.0),
+                ],
+              ),
             ],
           ),
+
+          // Rejection reason
+          if (txn.status == 'rejected' && txn.rejectionReason != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.red.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.red.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 13, color: AppColors.red),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Rejected: ${txn.rejectionReason}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 11, color: AppColors.red),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // Screenshot buttons
+          if (hasDepositScreenshot || hasWithdrawalScreenshot) ...[
+            const SizedBox(height: 8),
+            Row(children: [
+              if (hasDepositScreenshot)
+                _screenshotBtn(
+                  context,
+                  'Payment Proof',
+                  txn.depositScreenshotPath!,
+                  AppColors.blue,
+                ),
+              if (hasWithdrawalScreenshot) ...[
+                if (hasDepositScreenshot) const SizedBox(width: 8),
+                _screenshotBtn(
+                  context,
+                  'Payment Received',
+                  txn.withdrawalScreenshotPath!,
+                  AppColors.green,
+                ),
+              ],
+            ]),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _screenshotBtn(
+      BuildContext context, String label, String path, Color color) {
+    return GestureDetector(
+      onTap: () => _viewScreenshot(context, path, label),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.image_outlined, size: 13, color: color),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: color),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _viewScreenshot(
+      BuildContext context, String path, String title) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: AppColors.background,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(children: [
+                Expanded(
+                    child: Text(title,
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.white,
+                            fontSize: 14))),
+                IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close,
+                        color: AppColors.textSecondary)),
+              ]),
+            ),
+            if (!kIsWeb && File(path).existsSync())
+              Image.file(File(path),
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Icon(Icons.broken_image_outlined,
+                            size: 56, color: AppColors.textMuted),
+                      ))
+            else
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text('Preview not available',
+                    style: GoogleFonts.poppins(
+                        color: AppColors.textSecondary,
+                        fontSize: 13)),
+              ),
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }

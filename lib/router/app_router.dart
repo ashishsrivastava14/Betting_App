@@ -28,6 +28,7 @@ import '../screens/admin/admin_users_screen.dart';
 import '../screens/admin/admin_user_detail_screen.dart';
 import '../screens/admin/admin_wallet_screen.dart';
 import '../screens/admin/admin_reports_screen.dart';
+import '../screens/admin/admin_payment_accounts_screen.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _userShellKey = GlobalKey<NavigatorState>();
@@ -147,6 +148,10 @@ GoRouter createRouter(AuthProvider authProvider) {
         path: '/admin/users/:id',
         builder: (_, state) =>
             AdminUserDetailScreen(userId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/admin/payment-accounts',
+        builder: (_, _) => const AdminPaymentAccountsScreen(),
       ),
     ],
   );

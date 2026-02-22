@@ -36,21 +36,39 @@ class WalletProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void approveTransaction(String txnId) {
+  /// Approve a deposit: credit user wallet.
+  void approveDeposit(String txnId) {
     final txn = _transactions.firstWhere((t) => t.id == txnId);
     txn.status = 'approved';
-
     final user = mockUsers.firstWhere((u) => u.id == txn.userId);
-    if (txn.type == 'deposit') {
-      user.walletBalance += txn.amount;
-    }
-
+    user.walletBalance += txn.amount;
     notifyListeners();
   }
 
-  void rejectTransaction(String txnId) {
+  /// Approve a withdrawal: debit user wallet and store admin-uploaded screenshot.
+  void approveWithdrawal(String txnId, {String? screenshotPath}) {
     final txn = _transactions.firstWhere((t) => t.id == txnId);
-    txn.status = 'completed'; // Rejected / completed
+    txn.status = 'approved';
+    if (screenshotPath != null) txn.withdrawalScreenshotPath = screenshotPath;
+    final user = mockUsers.firstWhere((u) => u.id == txn.userId);
+    user.walletBalance -= txn.amount;
+    notifyListeners();
+  }
+
+  /// Generic approve (delegates to type-specific logic).
+  void approveTransaction(String txnId) {
+    final txn = _transactions.firstWhere((t) => t.id == txnId);
+    if (txn.type == 'deposit') {
+      approveDeposit(txnId);
+    } else {
+      approveWithdrawal(txnId);
+    }
+  }
+
+  void rejectTransaction(String txnId, {String? reason}) {
+    final txn = _transactions.firstWhere((t) => t.id == txnId);
+    txn.status = 'rejected';
+    txn.rejectionReason = reason;
     notifyListeners();
   }
 
