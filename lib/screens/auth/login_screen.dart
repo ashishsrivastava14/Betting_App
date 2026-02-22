@@ -92,30 +92,16 @@ class _LoginScreenState extends State<LoginScreen>
                         SizedBox(height: screenHeight * 0.08),
 
                         // ── Logo ──
-                        Container(
-                          width: 88,
-                          height: 88,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                AppColors.accent,
-                                AppColors.accentDark,
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    AppColors.accent.withValues(alpha: 0.35),
-                                blurRadius: 24,
-                                spreadRadius: 2,
-                              ),
-                            ],
+                        Image.asset(
+                          'assets/images/bt_logo.png',
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.sports_cricket,
+                            size: 42,
+                            color: AppColors.accent,
                           ),
-                          child: const Icon(Icons.sports_cricket,
-                              size: 42, color: AppColors.background),
                         ),
                         const SizedBox(height: 18),
 

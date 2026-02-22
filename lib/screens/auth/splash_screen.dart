@@ -115,31 +115,15 @@ class _SplashScreenState extends State<SplashScreen>
                       child: child,
                     ),
                   ),
-                  child: Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.accent,
-                          AppColors.accentDark,
-                        ],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.accent.withValues(alpha: 0.45),
-                          blurRadius: 40,
-                          spreadRadius: 4,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
+                  child: Image.asset(
+                    'assets/images/bt_logo.png',
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
                       Icons.sports_cricket,
                       size: 52,
-                      color: AppColors.background,
+                      color: AppColors.accent,
                     ),
                   ),
                 ),

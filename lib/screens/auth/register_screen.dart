@@ -262,30 +262,16 @@ class _RegisterScreenState extends State<RegisterScreen>
                               SizedBox(height: screenHeight * 0.02),
 
                               // ── Logo ──
-                              Container(
-                                width: 72,
-                                height: 72,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      AppColors.accent,
-                                      AppColors.accentDark,
-                                    ],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.accent
-                                          .withValues(alpha: 0.35),
-                                      blurRadius: 24,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
+                              Image.asset(
+                                'assets/images/bt_logo.png',
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.sports_cricket,
+                                  size: 34,
+                                  color: AppColors.accent,
                                 ),
-                                child: const Icon(Icons.sports_cricket,
-                                    size: 34, color: AppColors.background),
                               ),
                               const SizedBox(height: 14),
 
