@@ -158,18 +158,16 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   const Spacer(),
                   // Logo center
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.surface,
-                      border: Border.all(
-                          color: AppColors.accent.withValues(alpha: 0.5),
-                          width: 2),
+                  Image.asset(
+                    'assets/images/bt_logo.png',
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.sports_cricket,
+                      color: AppColors.accent,
+                      size: 28,
                     ),
-                    child: const Icon(Icons.sports_cricket,
-                        color: AppColors.accent, size: 22),
                   ),
                   const Spacer(),
                   // Notification bell right

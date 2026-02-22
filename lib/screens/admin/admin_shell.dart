@@ -42,7 +42,7 @@ class _AdminShellState extends State<AdminShell> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _navItem(0, Icons.dashboard_rounded, 'DASHBOARD'),
+                _navItem(0, Icons.dashboard_rounded, 'DASHBOARD', imagePath: 'assets/images/bt_logo.png'),
                 _navItem(1, Icons.event_note_rounded, 'EVENTS'),
                 _navItem(2, Icons.people_rounded, 'USERS'),
                 _navItem(3, Icons.account_balance_wallet_rounded, 'WALLET'),
@@ -59,7 +59,7 @@ class _AdminShellState extends State<AdminShell> {
     );
   }
 
-  Widget _navItem(int index, IconData icon, String label) {
+  Widget _navItem(int index, IconData icon, String label, {String? imagePath}) {
     final isSelected = _currentIndex == index;
     return Expanded(
       child: GestureDetector(
@@ -81,11 +81,32 @@ class _AdminShellState extends State<AdminShell> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            Icon(
-              icon,
-              size: 22,
-              color: isSelected ? AppColors.accent : AppColors.textMuted,
-            ),
+            if (imagePath != null)
+              ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  isSelected
+                      ? AppColors.accent
+                      : AppColors.textMuted,
+                  BlendMode.srcIn,
+                ),
+                child: Image.asset(
+                  imagePath,
+                  width: 22,
+                  height: 22,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Icon(
+                    icon,
+                    size: 22,
+                    color: isSelected ? AppColors.accent : AppColors.textMuted,
+                  ),
+                ),
+              )
+            else
+              Icon(
+                icon,
+                size: 22,
+                color: isSelected ? AppColors.accent : AppColors.textMuted,
+              ),
             const SizedBox(height: 3),
             Text(
               label,
