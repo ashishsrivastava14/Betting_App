@@ -1,7 +1,10 @@
+import 'package:excel/excel.dart' as xl;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../utils/excel_download.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/wallet_provider.dart';
@@ -18,6 +21,7 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> {
   String _activeFilter = 'all';
+  bool _isExporting = false;
 
   static const _filters = [
     ('all',        'All',         Icons.list_rounded),
@@ -39,6 +43,108 @@ class _WalletScreenState extends State<WalletScreen> {
       default:
         return txns;
     }
+  }
+
+  // ── Export to Excel ──
+  Future<void> _exportToExcel(List<TransactionModel> txns, String userId) async {
+    if (_isExporting) return;
+    setState(() => _isExporting = true);
+    try {
+      await _doExport(txns, userId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Exported ${txns.length} transactions successfully',
+            style: GoogleFonts.poppins(fontSize: 13),
+          ),
+          backgroundColor: AppColors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Export failed: $e',
+            style: GoogleFonts.poppins(fontSize: 13),
+          ),
+          backgroundColor: AppColors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
+  }
+
+  Future<void> _doExport(List<TransactionModel> txns, String userId) async {
+    final excel = xl.Excel.createExcel();
+    excel.rename('Sheet1', 'Transactions');
+    final sheet = excel['Transactions'];
+
+    // --- Header row style ---
+    final headerBg = xl.ExcelColor.fromHexString('#CFB53B');
+    final headerFont = xl.CellStyle(
+      bold: true,
+      fontColorHex: xl.ExcelColor.fromHexString('#0D1117'),
+      backgroundColorHex: headerBg,
+      horizontalAlign: xl.HorizontalAlign.Center,
+    );
+
+    final headers = [
+      'Transaction ID',
+      'Type',
+      'Amount (₹)',
+      'Status',
+      'Date & Time',
+      'Notes',
+    ];
+
+    sheet.appendRow(headers.map((h) => xl.TextCellValue(h)).toList());
+    for (int col = 0; col < headers.length; col++) {
+      final cell = sheet.cell(xl.CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0));
+      cell.cellStyle = headerFont;
+    }
+
+    // Set column widths
+    sheet.setColumnWidth(0, 18);
+    sheet.setColumnWidth(1, 14);
+    sheet.setColumnWidth(2, 14);
+    sheet.setColumnWidth(3, 12);
+    sheet.setColumnWidth(4, 22);
+    sheet.setColumnWidth(5, 30);
+
+    // --- Data rows ---
+    final dtFormatter = DateFormat('dd MMM yyyy, hh:mm a');
+    for (final txn in txns) {
+      final typeLabel = switch (txn.type) {
+        'deposit'    => 'Deposit',
+        'withdrawal' => 'Withdrawal',
+        'bet_debit'  => 'Bet Placed',
+        'win_credit' => 'Win Credit',
+        _            => txn.type,
+      };
+      sheet.appendRow([
+        xl.TextCellValue(txn.id),
+        xl.TextCellValue(typeLabel),
+        xl.DoubleCellValue(txn.amount),
+        xl.TextCellValue(txn.status.toUpperCase()),
+        xl.TextCellValue(dtFormatter.format(txn.createdAt)),
+        xl.TextCellValue(txn.notes),
+      ]);
+    }
+
+    // --- Save & share ---
+    final bytes = excel.encode();
+    if (bytes == null) throw Exception('Failed to encode Excel file');
+
+    final fileName =
+        'transactions_${userId}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.xlsx';
+    await saveAndShareExcel(bytes, fileName, 'Transaction History – $userId');
   }
 
   (IconData, Color, String) _txnMeta(String type) {
@@ -179,6 +285,55 @@ class _WalletScreenState extends State<WalletScreen> {
                         color: AppColors.textMuted,
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    // Export to Excel button
+                    if (allTxns.isNotEmpty)
+                      GestureDetector(
+                        onTap: _isExporting
+                            ? null
+                            : () => _exportToExcel(allTxns, user.id),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: _isExporting
+                                ? AppColors.green.withValues(alpha: 0.06)
+                                : AppColors.green.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: AppColors.green.withValues(alpha: _isExporting ? 0.15 : 0.35)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_isExporting)
+                                const SizedBox(
+                                  width: 13,
+                                  height: 13,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 1.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.green),
+                                  ),
+                                )
+                              else
+                                const Icon(Icons.file_download_outlined,
+                                    size: 13, color: AppColors.green),
+                              const SizedBox(width: 4),
+                              Text(
+                                _isExporting ? 'Exporting...' : 'Export',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: _isExporting
+                                      ? AppColors.green.withValues(alpha: 0.5)
+                                      : AppColors.green,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 12),
