@@ -175,6 +175,7 @@ class AdminDashboardScreen extends StatelessWidget {
                           Icons.history_rounded,
                           'Recent Activity',
                           'View All',
+                          onAction: () => context.go('/admin/reports'),
                         ),
                         const SizedBox(height: 12),
 
@@ -197,8 +198,9 @@ class AdminDashboardScreen extends StatelessWidget {
     BuildContext context,
     IconData icon,
     String title,
-    String? actionLabel,
-  ) {
+    String? actionLabel, {
+    VoidCallback? onAction,
+  }) {
     return Row(
       children: [
         Container(
@@ -223,19 +225,27 @@ class AdminDashboardScreen extends StatelessWidget {
         ),
         if (actionLabel != null) ...[
           const Spacer(),
-          Text(
-            actionLabel,
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.accent,
+          GestureDetector(
+            onTap: onAction,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  actionLabel,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.accent,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 16,
+                  color: AppColors.accent,
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: 2),
-          const Icon(
-            Icons.chevron_right_rounded,
-            size: 16,
-            color: AppColors.accent,
           ),
         ],
       ],
