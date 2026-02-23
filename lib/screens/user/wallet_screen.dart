@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:excel/excel.dart' as xl;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -634,37 +636,59 @@ class _WalletScreenState extends State<WalletScreen> {
 
   void _viewScreenshot(
       BuildContext context, String path, String title) {
+    final screenH = MediaQuery.of(context).size.height;
+    final screenW = MediaQuery.of(context).size.width;
     showDialog(
       context: context,
       builder: (_) => Dialog(
         backgroundColor: AppColors.background,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(children: [
-                Expanded(
-                    child: Text(title,
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.white,
-                            fontSize: 14))),
-                IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close,
-                        color: AppColors.textSecondary)),
-              ]),
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(children: [
+              Expanded(
+                  child: Text(title,
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.white,
+                          fontSize: 14))),
+              IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close,
+                      color: AppColors.textSecondary)),
+            ]),
+          ),
+          SizedBox(
+            width: screenW - 32,
+            height: screenH * 0.55,
+            child: ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(bottom: Radius.circular(12)),
+              child: _resolveImage(path),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: buildScreenshotPreview(path),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
+  }
+
+  Widget _resolveImage(String path) {
+    if (path.startsWith('dummy:') || path.startsWith('assets/')) {
+      final asset = path.startsWith('assets/')
+          ? path
+          : 'assets/images/sample_Transaction.png';
+      return Image.asset(asset, fit: BoxFit.cover);
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return Image.network(path, fit: BoxFit.cover);
+    }
+    if (!kIsWeb && File(path).existsSync()) {
+      return Image.file(File(path), fit: BoxFit.cover);
+    }
+    return Image.asset('assets/images/sample_Transaction.png',
+        fit: BoxFit.cover);
   }
 }

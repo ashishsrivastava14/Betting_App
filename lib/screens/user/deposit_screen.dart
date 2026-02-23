@@ -285,11 +285,11 @@ class _DepositScreenState extends State<DepositScreen> {
                                   height: double.infinity,
                                   fit: BoxFit.cover,
                                 )
-                              : Center(
-                                  child: Text('Screenshot selected',
-                                      style: GoogleFonts.poppins(
-                                          color: AppColors.green,
-                                          fontSize: 13)),
+                              : Image.asset(
+                                  'assets/images/sample_Transaction.png',
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
                                 ),
                         ),
                         Positioned(

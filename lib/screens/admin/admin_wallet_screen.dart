@@ -357,10 +357,11 @@ class _PendingTile extends StatelessWidget {
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.red, foregroundColor: Colors.white),
             onPressed: () {
+              final messenger = ScaffoldMessenger.of(context);
               wallet.rejectTransaction(txn.id,
                   reason: ctrl.text.trim().isEmpty ? null : ctrl.text.trim());
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
+              messenger.showSnackBar(
                   const SnackBar(content: Text('Request rejected')));
             },
             child: Text('Reject',
@@ -372,13 +373,19 @@ class _PendingTile extends StatelessWidget {
   }
 
   void _viewScreenshot(BuildContext context, String path, String title) {
+    final screenH = MediaQuery.of(context).size.height;
+    final screenW = MediaQuery.of(context).size.width;
     showDialog(
       context: context,
       builder: (_) => Dialog(
         backgroundColor: AppColors.background,
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
+          // Header
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(children: [
               Expanded(
                   child: Text(title,
@@ -388,17 +395,39 @@ class _PendingTile extends StatelessWidget {
                           fontSize: 14))),
               IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: AppColors.textSecondary)),
+                  icon: const Icon(Icons.close,
+                      color: AppColors.textSecondary)),
             ]),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: buildScreenshotPreview(path),
+          // Image in a fixed-height box so it always renders
+          SizedBox(
+            width: screenW - 32,
+            height: screenH * 0.55,
+            child: ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(bottom: Radius.circular(12)),
+              child: _resolveImage(path),
+            ),
           ),
-          const SizedBox(height: 12),
         ]),
       ),
     );
+  }
+
+  Widget _resolveImage(String path) {
+    if (path.startsWith('dummy:') || path.startsWith('assets/')) {
+      final asset =
+          path.startsWith('assets/') ? path : 'assets/images/sample_Transaction.png';
+      return Image.asset(asset, fit: BoxFit.cover);
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return Image.network(path, fit: BoxFit.cover);
+    }
+    if (!kIsWeb && File(path).existsSync()) {
+      return Image.file(File(path), fit: BoxFit.cover);
+    }
+    return Image.asset('assets/images/sample_Transaction.png',
+        fit: BoxFit.cover);
   }
 }
 
@@ -418,7 +447,8 @@ class _WithdrawalApprovalDialog extends StatefulWidget {
 
 class _WithdrawalApprovalDialogState
     extends State<_WithdrawalApprovalDialog> {
-  String? _screenshotPath;
+  // Pre-filled with sample receipt so the dialog is never blank
+  String _screenshotPath = 'assets/images/sample_Transaction.png';
 
   Future<void> _pick() async {
     final file =
@@ -426,56 +456,70 @@ class _WithdrawalApprovalDialogState
     if (file != null) setState(() => _screenshotPath = file.path);
   }
 
+  Widget _buildPreview() {
+    if (_screenshotPath.startsWith('assets/')) {
+      return Image.asset(_screenshotPath,
+          width: double.infinity, height: double.infinity, fit: BoxFit.cover);
+    }
+    if (!kIsWeb && File(_screenshotPath).existsSync()) {
+      return Image.file(File(_screenshotPath),
+          width: double.infinity, height: double.infinity, fit: BoxFit.cover);
+    }
+    return Image.asset('assets/images/sample_Transaction.png',
+        width: double.infinity, height: double.infinity, fit: BoxFit.cover);
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppColors.card,
-      title: Text('Approve Withdrawal',
+      title: Text('Approve & Pay',
           style: GoogleFonts.poppins(
               fontWeight: FontWeight.w600, color: AppColors.white)),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(
-          'After sending payment, upload a screenshot as proof for the user.',
-          style: GoogleFonts.poppins(
-              fontSize: 12, color: AppColors.textSecondary, height: 1.5),
-        ),
-        const SizedBox(height: 12),
-        GestureDetector(
-          onTap: _pick,
-          child: Container(
-            height: 100,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColors.background,
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(
+            'Payment receipt to share with user as confirmation:',
+            style: GoogleFonts.poppins(
+                fontSize: 12, color: AppColors.textSecondary, height: 1.5),
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: _pick,
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: _screenshotPath != null
-                    ? AppColors.green.withValues(alpha: 0.5)
-                    : AppColors.accent.withValues(alpha: 0.4),
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  SizedBox(
+                    height: 200,
+                    width: double.maxFinite,
+                    child: _buildPreview(),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.edit_outlined,
+                          size: 11, color: AppColors.accent),
+                      const SizedBox(width: 4),
+                      Text('Tap to change',
+                          style: GoogleFonts.poppins(
+                              fontSize: 9, color: AppColors.accent)),
+                    ]),
+                  ),
+                ],
               ),
             ),
-            child: _screenshotPath != null
-                ? (!kIsWeb && File(_screenshotPath!).existsSync()
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.file(File(_screenshotPath!),
-                            fit: BoxFit.cover))
-                    : Center(
-                        child: Text('Screenshot selected',
-                            style: GoogleFonts.poppins(
-                                color: AppColors.green, fontSize: 12))))
-                : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    const Icon(Icons.upload_rounded,
-                        color: AppColors.accent, size: 28),
-                    const SizedBox(height: 4),
-                    Text('Upload payment screenshot (optional)',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                            fontSize: 11, color: AppColors.textSecondary)),
-                  ]),
           ),
-        ),
-      ]),
+        ]),
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
@@ -484,12 +528,15 @@ class _WithdrawalApprovalDialogState
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.green, foregroundColor: Colors.white),
+              backgroundColor: AppColors.green,
+              foregroundColor: Colors.white),
           onPressed: () {
-            widget.wallet
-                .approveWithdrawal(widget.txnId, screenshotPath: _screenshotPath);
+            // Capture messenger BEFORE pop so context is still valid
+            final messenger = ScaffoldMessenger.of(context);
+            widget.wallet.approveWithdrawal(widget.txnId,
+                screenshotPath: _screenshotPath);
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            messenger.showSnackBar(const SnackBar(
               content: Text('Withdrawal approved & wallet debited'),
               backgroundColor: AppColors.green,
             ));
