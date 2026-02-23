@@ -36,4 +36,13 @@ final List<PaymentAccountModel> mockPaymentAccounts = [
     upiId: 'betzone@okaxis',
     createdAt: DateTime.now().subtract(const Duration(days: 5)),
   ),
+  PaymentAccountModel(
+    id: 'ACC005',
+    name: 'QR Code (UPI)',
+    type: PaymentMethodType.qrCode,
+    isActive: true,
+    upiId: 'betzone@upi',
+    qrCodePath: 'assets/images/sample_QR.png',
+    createdAt: DateTime.now().subtract(const Duration(days: 2)),
+  ),
 ];

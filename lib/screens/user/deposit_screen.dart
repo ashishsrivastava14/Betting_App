@@ -13,6 +13,7 @@ import '../../providers/payment_account_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_utils.dart';
+import '../../widgets/dummy_screenshot.dart';
 
 class DepositScreen extends StatefulWidget {
   const DepositScreen({super.key});
@@ -572,27 +573,35 @@ class _AccountDetails extends StatelessWidget {
             _row('IFSC Code', account.ifscCode!, context, copyable: true),
         ];
       case PaymentMethodType.qrCode:
-        if (account.qrCodePath != null &&
-            !kIsWeb &&
-            File(account.qrCodePath!).existsSync()) {
-          return [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.file(
-                File(account.qrCodePath!),
-                height: 200,
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text('Scan QR to pay',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                    fontSize: 12, color: AppColors.textSecondary)),
-          ];
+        final qrPath = account.qrCodePath;
+        Widget qrWidget;
+        if (qrPath != null && qrPath.startsWith('assets/')) {
+          qrWidget = ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.asset(qrPath, height: 220, fit: BoxFit.contain),
+          );
+        } else if (qrPath != null &&
+            (qrPath.startsWith('https://') ||
+                qrPath.startsWith('http://'))) {
+          qrWidget = NetworkQrImage(url: qrPath, size: 220);
+        } else if (qrPath != null && !kIsWeb && File(qrPath).existsSync()) {
+          qrWidget = ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.file(File(qrPath), height: 220, fit: BoxFit.contain),
+          );
+        } else {
+          // Fallback: show sample QR
+          qrWidget = ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.asset('assets/images/sample_QR.png',
+                height: 220, fit: BoxFit.contain),
+          );
         }
         return [
-          Text('QR Code not available',
+          qrWidget,
+          const SizedBox(height: 8),
+          Text('Scan QR to pay',
+              textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                   fontSize: 12, color: AppColors.textSecondary)),
         ];

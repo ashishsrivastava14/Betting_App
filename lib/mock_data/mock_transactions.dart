@@ -10,6 +10,9 @@ final List<TransactionModel> mockTransactions = [
     status: 'completed',
     createdAt: DateTime.now().subtract(const Duration(days: 5)),
     notes: 'Initial deposit via UPI',
+    paymentAccountId: 'ACC002',
+    paymentAccountName: 'Account 2 (UPI)',
+    depositScreenshotPath: 'dummy:deposit',
   ),
   TransactionModel(
     id: 'TXN002',
@@ -46,6 +49,8 @@ final List<TransactionModel> mockTransactions = [
     status: 'pending',
     createdAt: DateTime.now().subtract(const Duration(hours: 3)),
     notes: 'Withdrawal to bank account',
+    withdrawalPaymentDetails: 'UPI: rahul@hdfc',
+    withdrawalScreenshotPath: 'dummy:withdrawal',
   ),
 
   // ── Transactions for USR002 (Priya) ──
@@ -57,6 +62,9 @@ final List<TransactionModel> mockTransactions = [
     status: 'completed',
     createdAt: DateTime.now().subtract(const Duration(days: 7)),
     notes: 'Initial deposit via bank transfer',
+    paymentAccountId: 'ACC001',
+    paymentAccountName: 'Account 1 (Bank Transfer)',
+    depositScreenshotPath: 'dummy:deposit',
   ),
   TransactionModel(
     id: 'TXN007',
@@ -83,7 +91,10 @@ final List<TransactionModel> mockTransactions = [
     amount: 3000,
     status: 'pending',
     createdAt: DateTime.now().subtract(const Duration(hours: 6)),
-    notes: 'Deposit via WhatsApp',
+    notes: 'Deposit via UPI',
+    paymentAccountId: 'ACC002',
+    paymentAccountName: 'Account 2 (UPI)',
+    depositScreenshotPath: 'dummy:deposit',
   ),
   TransactionModel(
     id: 'TXN010',

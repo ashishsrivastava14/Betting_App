@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../models/payment_account_model.dart';
 import '../../providers/payment_account_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/dummy_screenshot.dart';
 
 class AdminPaymentAccountsScreen extends StatelessWidget {
   const AdminPaymentAccountsScreen({super.key});
@@ -513,24 +514,49 @@ class _AccountFormSheetState extends State<_AccountFormSheet> {
                         style: BorderStyle.solid),
                   ),
                   child: _qrCodePath != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: kIsWeb
-                              ? const Icon(Icons.qr_code,
-                                  size: 56, color: AppColors.accent)
-                              : Image.file(File(_qrCodePath!),
-                                  fit: BoxFit.contain),
-                        )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                      ? (_qrCodePath!.startsWith('assets/')
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.asset(_qrCodePath!,
+                                  fit: BoxFit.contain))
+                          : _qrCodePath!.startsWith('https://')
+                              ? NetworkQrImage(
+                                  url: _qrCodePath!, size: 110)
+                              : !kIsWeb
+                                  ? ClipRRect(
+                                      borderRadius:
+                                          BorderRadius.circular(10),
+                                      child: Image.file(
+                                          File(_qrCodePath!),
+                                          fit: BoxFit.contain))
+                                  : const Icon(Icons.qr_code,
+                                      size: 56,
+                                      color: AppColors.accent))
+                      : Stack(
+                          alignment: Alignment.center,
                           children: [
-                            const Icon(Icons.upload_rounded,
-                                size: 32, color: AppColors.accent),
-                            const SizedBox(height: 6),
-                            Text('Tap to upload QR code',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary)),
+                            // Sample QR as background hint
+                            Opacity(
+                              opacity: 0.4,
+                              child: Image.asset(
+                                'assets/images/sample_QR.png',
+                                width: 110,
+                                height: 110,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.upload_rounded,
+                                    size: 28, color: AppColors.accent),
+                                const SizedBox(height: 4),
+                                Text('Tap to upload QR code',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        color: AppColors.textSecondary)),
+                              ],
+                            ),
                           ],
                         ),
                 ),

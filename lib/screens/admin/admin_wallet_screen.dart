@@ -12,6 +12,7 @@ import '../../providers/payment_account_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_utils.dart';
+import '../../widgets/dummy_screenshot.dart';
 
 class AdminWalletScreen extends StatefulWidget {
   const AdminWalletScreen({super.key});
@@ -390,31 +391,15 @@ class _PendingTile extends StatelessWidget {
                   icon: const Icon(Icons.close, color: AppColors.textSecondary)),
             ]),
           ),
-          if (!kIsWeb && File(path).existsSync())
-            Image.file(File(path),
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) =>
-                    _placeholder('Could not load image'))
-          else
-            _placeholder('Preview unavailable on this platform'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: buildScreenshotPreview(path),
+          ),
           const SizedBox(height: 12),
         ]),
       ),
     );
   }
-
-  Widget _placeholder(String msg) => Container(
-        height: 180,
-        alignment: Alignment.center,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.broken_image_outlined,
-              size: 40, color: AppColors.textMuted),
-          const SizedBox(height: 8),
-          Text(msg,
-              style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.textSecondary)),
-        ]),
-      );
 }
 
 // ─────────────────────────────────────────────────────────────

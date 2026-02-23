@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:excel/excel.dart' as xl;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_utils.dart';
+import '../../widgets/dummy_screenshot.dart';
 import '../../widgets/status_badge.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -658,22 +657,10 @@ class _WalletScreenState extends State<WalletScreen> {
                         color: AppColors.textSecondary)),
               ]),
             ),
-            if (!kIsWeb && File(path).existsSync())
-              Image.file(File(path),
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Icon(Icons.broken_image_outlined,
-                            size: 56, color: AppColors.textMuted),
-                      ))
-            else
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text('Preview not available',
-                    style: GoogleFonts.poppins(
-                        color: AppColors.textSecondary,
-                        fontSize: 13)),
-              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: buildScreenshotPreview(path),
+            ),
             const SizedBox(height: 12),
           ],
         ),
