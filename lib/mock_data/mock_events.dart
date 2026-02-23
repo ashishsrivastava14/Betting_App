@@ -61,6 +61,49 @@ final List<EventModel> mockEvents = [
       BetOption(label: 'Under 160.5', multiplier: 1.85),
     ],
   ),
+  EventModel(
+    id: 'EVT007',
+    name: 'GT vs LSG - IPL Match 47',
+    eventType: 'Match Winner',
+    team1: 'GT',
+    team2: 'LSG',
+    startTime: DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
+    betCloseTime: DateTime.now().add(const Duration(minutes: 45)),
+    status: 'live',
+    options: [
+      BetOption(label: 'GT', multiplier: 1.80),
+      BetOption(label: 'LSG', multiplier: 2.05),
+    ],
+  ),
+  EventModel(
+    id: 'EVT008',
+    name: 'PAK vs NZ - 1st Test',
+    eventType: 'Top Batsman',
+    team1: 'Pakistan',
+    team2: 'New Zealand',
+    startTime: DateTime.now().subtract(const Duration(hours: 3)),
+    betCloseTime: DateTime.now().add(const Duration(hours: 1)),
+    status: 'live',
+    options: [
+      BetOption(label: 'Babar Azam', multiplier: 2.50),
+      BetOption(label: 'Kane Williamson', multiplier: 2.80),
+      BetOption(label: 'Mohammad Rizwan', multiplier: 3.20),
+    ],
+  ),
+  EventModel(
+    id: 'EVT009',
+    name: 'MI vs PBKS - First 6 Overs Runs',
+    eventType: 'Over Runs',
+    team1: 'MI',
+    team2: 'PBKS',
+    startTime: DateTime.now().subtract(const Duration(minutes: 45)),
+    betCloseTime: DateTime.now().add(const Duration(minutes: 20)),
+    status: 'live',
+    options: [
+      BetOption(label: 'Over 52.5', multiplier: 1.90),
+      BetOption(label: 'Under 52.5', multiplier: 1.90),
+    ],
+  ),
 
   // ── Settled Events ──
   EventModel(
