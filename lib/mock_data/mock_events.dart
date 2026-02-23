@@ -43,8 +43,8 @@ final List<EventModel> mockEvents = [
     betCloseTime: DateTime.now().add(const Duration(minutes: 30)),
     status: 'live',
     options: [
-      BetOption(label: 'RCB', multiplier: 1.75),
-      BetOption(label: 'KKR', multiplier: 2.20),
+      BetOption(label: 'RCB', multiplier: 1.90),
+      BetOption(label: 'KKR', multiplier: 1.90),
     ],
   ),
   EventModel(

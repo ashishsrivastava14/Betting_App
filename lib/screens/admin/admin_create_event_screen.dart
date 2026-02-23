@@ -24,7 +24,6 @@ class _AdminCreateEventScreenState extends State<AdminCreateEventScreen> {
 
   final List<Map<String, dynamic>> _options = [
     {'label': '', 'multiplier': 1.90},
-    {'label': '', 'multiplier': 1.90},
   ];
 
   @override
@@ -40,7 +39,7 @@ class _AdminCreateEventScreenState extends State<AdminCreateEventScreen> {
   }
 
   void _removeOption(int index) {
-    if (_options.length > 2) setState(() { _options.removeAt(index); });
+    if (_options.length > 1) setState(() { _options.removeAt(index); });
   }
 
   Future<void> _pickDateTime(bool isStart) async {
@@ -223,7 +222,7 @@ class _AdminCreateEventScreenState extends State<AdminCreateEventScreen> {
                     decoration: InputDecoration(hintText: 'Odds', isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10), fillColor: AppColors.cardLight, suffixText: 'x'),
                     onChanged: (v) => _options[i]['multiplier'] = double.tryParse(v) ?? 1.0,
                   )),
-                  if (_options.length > 2)
+                  if (_options.length > 1)
                     IconButton(icon: const Icon(Icons.remove_circle, color: AppColors.red, size: 20), onPressed: () => _removeOption(i)),
                 ]),
               );
