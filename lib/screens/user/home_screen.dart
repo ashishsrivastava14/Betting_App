@@ -31,16 +31,13 @@ class _HomeScreenState extends State<HomeScreen>
   ];
 
   final _filters = [
-    {'label': 'All', 'icon': Icons.grid_view_rounded},
     {'label': 'Live', 'icon': Icons.sports_cricket},
-    {'label': 'Upcoming', 'icon': Icons.schedule},
-    {'label': 'Settled', 'icon': Icons.check_circle_outline},
   ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 1, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() => _selectedFilter = _tabController.index);
@@ -303,10 +300,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildEventList(_applySort(eventProvider.allEvents)),
                   _buildEventList(_applySort(eventProvider.liveEvents)),
-                  _buildEventList(_applySort(eventProvider.upcomingEvents)),
-                  _buildEventList(_applySort(eventProvider.settledEvents)),
                 ],
               ),
             ),
